@@ -1,0 +1,3062 @@
+<!doctype html><html lang="en">
+ <head>
+  <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+  <meta content="width=device-width, initial-scale=1, shrink-to-fit=no" name="viewport">
+  <title>DXXXXR0: Computations as a global solution to concurrency</title>
+<style data-fill-with="stylesheet">/******************************************************************************
+ *                   Style sheet for the W3C specifications                   *
+ *
+ * Special classes handled by this style sheet include:
+ *
+ * Indices
+ *   - .toc for the Table of Contents (<ol class="toc">)
+ *     + <span class="secno"> for the section numbers
+ *   - #toc for the Table of Contents (<nav id="toc">)
+ *   - ul.index for Indices (<a href="#ref">term</a><span>, in § N.M</span>)
+ *   - table.index for Index Tables (e.g. for properties or elements)
+ *
+ * Structural Markup
+ *   - table.data for general data tables
+ *     -> use 'scope' attribute, <colgroup>, <thead>, and <tbody> for best results !
+ *     -> use <table class='complex data'> for extra-complex tables
+ *     -> use <td class='long'> for paragraph-length cell content
+ *     -> use <td class='pre'> when manual line breaks/indentation would help readability
+ *   - dl.switch for switch statements
+ *   - ol.algorithm for algorithms (helps to visualize nesting)
+ *   - .figure and .caption (HTML4) and figure and figcaption (HTML5)
+ *     -> .sidefigure for right-floated figures
+ *   - ins/del
+ *     -> ins/del.c### for candidate and proposed changes (amendments)
+ *
+ * Code
+ *   - pre and code
+ *
+ * Special Sections
+ *   - .note       for informative notes             (div, p, span, aside, details)
+ *   - .example    for informative examples          (div, p, pre, span)
+ *   - .issue      for issues                        (div, p, span)
+ *   - .advisement for loud normative statements     (div, p, strong)
+ *   - .annoying-warning for spec obsoletion notices (div, aside, details)
+ *   - .correction for "candidate corrections"       (div, aside, details, section)
+ *   - .addition   for "candidate additions"         (div, aside, details, section)
+ *   - .correction.proposed for "proposed corrections" (div, aside, details, section)
+ *   - .addition.proposed   for "proposed additions"   (div, aside, details, section)
+ *
+ * Definition Boxes
+ *   - pre.def   for WebIDL definitions
+ *   - table.def for tables that define other entities (e.g. CSS properties)
+ *   - dl.def    for definition lists that define other entitles (e.g. HTML elements)
+ *
+ * Numbering
+ *   - .secno for section numbers in .toc and headings (<span class='secno'>3.2</span>)
+ *   - .marker for source-inserted example/figure/issue numbers (<span class='marker'>Issue 4</span>)
+ *   - ::before styled for CSS-generated issue/example/figure numbers:
+ *     -> Documents wishing to use this only need to add
+ *        figcaption::before,
+ *        .caption::before { content: "Figure "  counter(figure) " ";  }
+ *        .example::before { content: "Example " counter(example) " "; }
+ *        .issue::before   { content: "Issue "   counter(issue) " ";   }
+ *
+ * Header Stuff (ignore, just don't conflict with these classes)
+ *   - .head for the header
+ *   - .copyright for the copyright
+ *
+ * Outdated warning for old specs
+ *
+ * Miscellaneous
+ *   - .overlarge for things that should be as wide as possible, even if
+ *     that overflows the body text area. This can be used on an item or
+ *     on its container, depending on the effect desired.
+ *     Note that this styling basically doesn't help at all when printing,
+ *     since A4 paper isn't much wider than the max-width here.
+ *     It's better to design things to fit into a narrower measure if possible.
+ *
+ *   - js-added ToC jump links (see fixup.js)
+ *
+ ******************************************************************************/
+
+/* color variables included separately for reliability */
+
+/******************************************************************************/
+/*                                    Body                                    */
+/******************************************************************************/
+
+	html {
+	}
+
+	body {
+		counter-reset: example figure issue;
+
+		/* Layout */
+		max-width: 50em;			  /* limit line length to 50em for readability   */
+		margin: 0 auto;				/* center text within page                    */
+		padding: 1.6em 1.5em 2em 50px; /* assume 16px font size for downlevel clients */
+		padding: 1.6em 1.5em 2em calc(26px + 1.5em); /* leave space for status flag    */
+
+		/* Typography */
+		line-height: 1.5;
+		font-family: sans-serif;
+		widows: 2;
+		orphans: 2;
+		word-wrap: break-word;
+		overflow-wrap: break-word;
+		hyphens: auto;
+
+		color: black;
+		color: var(--text);
+		background: white top left fixed no-repeat;
+		background: var(--bg) top left fixed no-repeat;
+		background-size: 25px auto;
+	}
+
+
+/******************************************************************************/
+/*                         Front Matter & Navigation                          */
+/******************************************************************************/
+
+/** Header ********************************************************************/
+
+	div.head { margin-bottom: 1em; }
+	div.head hr { border-style: solid; }
+
+	div.head h1 {
+		font-weight: bold;
+		margin: 0 0 .1em;
+		font-size: 220%;
+	}
+
+	div.head h2 { margin-bottom: 1.5em;}
+
+/** W3C Logo ******************************************************************/
+
+	.head .logo {
+		float: right;
+		margin: 0.4rem 0 0.2rem .4rem;
+	}
+
+	.head img[src*="logos/W3C"] {
+		display: block;
+		border: solid #1a5e9a;
+		border: solid var(--logo-bg);
+		border-width: .65rem .7rem .6rem;
+		border-radius: .4rem;
+		background: #1a5e9a;
+		background: var(--logo-bg);
+		color: white;
+		color: var(--logo-text);
+		font-weight: bold;
+	}
+
+	.head a:hover > img[src*="logos/W3C"],
+	.head a:focus > img[src*="logos/W3C"] {
+		opacity: .8;
+	}
+
+	.head a:active > img[src*="logos/W3C"] {
+		background: #c00;
+		background: var(--logo-active-bg);
+		border-color: #c00;
+		border-color: var(--logo-active-bg);
+	}
+
+	/* see also additional rules in Link Styling section */
+
+/** Copyright *****************************************************************/
+
+	p.copyright,
+	p.copyright small { font-size: small; }
+
+/** Back to Top / ToC Toggle **************************************************/
+
+	@media print {
+		#toc-nav {
+			display: none;
+		}
+	}
+	@media not print {
+		#toc-nav {
+			position: fixed;
+			z-index: 3;
+			bottom: 0; left: 0;
+			margin: 0;
+			min-width: 1.33em;
+			border-top-right-radius: 2rem;
+			box-shadow: 0 0 2px;
+			font-size: 1.5em;
+		}
+		#toc-nav > a {
+			display: block;
+			white-space: nowrap;
+
+			height: 1.33em;
+			padding: .1em 0.3em;
+			margin: 0;
+
+			box-shadow: 0 0 2px;
+			border: none;
+			border-top-right-radius: 1.33em;
+
+			color: #707070;
+			color: var(--tocnav-normal-text);
+			background: white;
+			background: var(--tocnav-normal-bg);
+		}
+		#toc-nav > a:hover,
+		#toc-nav > a:focus {
+			color: black;
+			color: var(--tocnav-hover-text);
+			background: #f8f8f8;
+			background: var(--tocnav-hover-bg);
+		}
+		#toc-nav > a:active {
+			color: #c00;
+			color: var(--tocnav-active-text);
+			background: white;
+			background: var(--tocnav-active-bg);
+		}
+
+		#toc-nav > #toc-jump {
+			padding-bottom: 2em;
+			margin-bottom: -1.9em;
+		}
+
+		/* statusbar gets in the way on keyboard focus; remove once browsers fix */
+		#toc-nav > a[href="#toc"]:not(:hover):focus:last-child {
+			padding-bottom: 1.5rem;
+		}
+
+		#toc-nav:not(:hover) > a:not(:focus) > span + span {
+			/* Ideally this uses :focus-within on #toc-nav */
+			display: none;
+		}
+		#toc-nav > a > span + span {
+			padding-right: 0.2em;
+		}
+	}
+
+/** ToC Sidebar ***************************************************************/
+
+	/* Floating sidebar */
+	@media screen {
+		body.toc-sidebar #toc {
+			position: fixed;
+			top: 0; bottom: 0;
+			left: 0;
+			width: 23.5em;
+			max-width: 80%;
+			max-width: calc(100% - 2em - 26px);
+			overflow: auto;
+			padding: 0 1em;
+			padding-left: 42px;
+			padding-left: calc(1em + 26px);
+			color: black;
+			color: var(--tocsidebar-text);
+			background: inherit;
+			background-color: #f7f8f9;
+			background-color: var(--tocsidebar-bg);
+			z-index: 1;
+			box-shadow: -.1em 0 .25em rgba(0,0,0,.1) inset;
+			box-shadow: -.1em 0 .25em var(--tocsidebar-shadow) inset;
+		}
+		body.toc-sidebar #toc h2 {
+			margin-top: .8rem;
+			font-variant: small-caps;
+			font-variant: all-small-caps;
+			text-transform: lowercase;
+			font-weight: bold;
+			color: gray;
+			color: hsla(203,20%,40%,.7);
+			color: var(--tocsidebar-heading-text);
+		}
+		body.toc-sidebar #toc-jump:not(:focus) {
+			width: 0;
+			height: 0;
+			padding: 0;
+			position: absolute;
+			overflow: hidden;
+		}
+	}
+	/* Hide main scroller when only the ToC is visible anyway */
+	@media screen and (max-width: 28em) {
+		body.toc-sidebar {
+			overflow: hidden;
+		}
+	}
+
+	/* Sidebar with its own space */
+	@media screen and (min-width: 78em) {
+		body:not(.toc-inline) #toc {
+			position: fixed;
+			top: 0; bottom: 0;
+			left: 0;
+			width: 23.5em;
+			overflow: auto;
+			padding: 0 1em;
+			padding-left: 42px;
+			padding-left: calc(1em + 26px);
+			color: black;
+			color: var(--tocsidebar-text);
+			background: inherit;
+			background-color: #f7f8f9;
+			background-color: var(--tocsidebar-bg);
+			z-index: 1;
+			box-shadow: -.1em 0 .25em rgba(0,0,0,.1) inset;
+			box-shadow: -.1em 0 .25em var(--tocsidebar-shadow) inset;
+		}
+		body:not(.toc-inline) #toc h2 {
+			margin-top: .8rem;
+			font-variant: small-caps;
+			font-variant: all-small-caps;
+			text-transform: lowercase;
+			font-weight: bold;
+			color: gray;
+			color: hsla(203,20%,40%,.7);
+			color: var(--tocsidebar-heading-text);
+		}
+
+		body:not(.toc-inline) {
+			padding-left: 29em;
+		}
+		/* See also Overflow section at the bottom */
+
+		body:not(.toc-inline) #toc-jump:not(:focus) {
+			width: 0;
+			height: 0;
+			padding: 0;
+			position: absolute;
+			overflow: hidden;
+		}
+	}
+	@media screen and (min-width: 90em) {
+		body:not(.toc-inline) {
+			margin: 0 4em;
+		}
+	}
+
+/******************************************************************************/
+/*                                Sectioning                                  */
+/******************************************************************************/
+
+/** Headings ******************************************************************/
+
+	h1, h2, h3, h4, h5, h6, dt {
+		page-break-after: avoid;
+		page-break-inside: avoid;
+		font: 100% sans-serif;   /* Reset all font styling to clear out UA styles */
+		font-family: inherit;	/* Inherit the font family. */
+		line-height: 1.2;		/* Keep wrapped headings compact */
+		hyphens: manual;		/* Hyphenated headings look weird */
+	}
+
+	h2, h3, h4, h5, h6 {
+		margin-top: 3rem;
+	}
+
+	h1, h2, h3 {
+		color: #005A9C;
+		color: var(--heading-text);
+	}
+
+	h1 { font-size: 170%; }
+	h2 { font-size: 140%; }
+	h3 { font-size: 120%; }
+	h4 { font-weight: bold; }
+	h5 { font-style: italic; }
+	h6 { font-variant: small-caps; }
+	dt { font-weight: bold; }
+
+/** Subheadings ***************************************************************/
+
+	h1 + h2,
+	#profile-and-date {
+		/* #profile-and-date is a subtitle in an H2 under the H1 */
+		margin-top: 0;
+	}
+	h2 + h3,
+	h3 + h4,
+	h4 + h5,
+	h5 + h6 {
+		margin-top: 1.2em; /* = 1 x line-height */
+	}
+
+/** Section divider ***********************************************************/
+
+	:not(.head) > :not(.head) + hr {
+		font-size: 1.5em;
+		text-align: center;
+		margin: 1em auto;
+		height: auto;
+		color: black;
+		color: var(--hr-text);
+		border: transparent solid 0;
+		background: transparent;
+	}
+	:not(.head) > hr::before {
+		content: "\2727\2003\2003\2727\2003\2003\2727";
+	}
+
+/******************************************************************************/
+/*                            Paragraphs and Lists                            */
+/******************************************************************************/
+
+	p {
+		margin: 1em 0;
+	}
+
+	dd > p:first-child,
+	li > p:first-child {
+		margin-top: 0;
+	}
+
+	ul, ol {
+		margin-left: 0;
+		padding-left: 2em;
+	}
+
+	li {
+		margin: 0.25em 0 0.5em;
+		padding: 0;
+	}
+
+	dl dd {
+		margin: 0 0 .5em 2em;
+	}
+
+	.head dd + dd { /* compact for header */
+		margin-top: -.5em;
+	}
+
+	/* Style for algorithms */
+	ol.algorithm ol:not(.algorithm),
+	.algorithm > ol ol:not(.algorithm) {
+	border-left: 0.5em solid #DEF;
+	border-left: 0.5em solid var(--algo-border);
+	}
+
+	/* Put nice boxes around each algorithm. */
+	[data-algorithm]:not(.heading) {
+	 padding: .5em;
+	 border: thin solid #ddd;
+	 border: thin solid var(--algo-border);
+	 border-radius: .5em;
+	 margin: .5em calc(-0.5em - 1px);
+	}
+	[data-algorithm]:not(.heading) > :first-child {
+	 margin-top: 0;
+	}
+	[data-algorithm]:not(.heading) > :last-child {
+	 margin-bottom: 0;
+	}
+
+	/* Style for switch/case <dl>s */
+	dl.switch > dd > ol.only,
+	dl.switch > dd > .only > ol {
+	margin-left: 0;
+	}
+	dl.switch > dd > ol.algorithm,
+	dl.switch > dd > .algorithm > ol {
+	margin-left: -2em;
+	}
+	dl.switch {
+	padding-left: 2em;
+	}
+	dl.switch > dt {
+	text-indent: -1.5em;
+	margin-top: 1em;
+	}
+	dl.switch > dt + dt {
+	margin-top: 0;
+	}
+	dl.switch > dt::before {
+	content: '\21AA';
+	padding: 0 0.5em 0 0;
+	display: inline-block;
+	width: 1em;
+	text-align: right;
+	line-height: 0.5em;
+	}
+
+/** Terminology Markup ********************************************************/
+
+
+/******************************************************************************/
+/*                                 Inline Markup                              */
+/******************************************************************************/
+
+/** Terminology Markup ********************************************************/
+	dfn   { /* Defining instance */
+		font-weight: bolder;
+	}
+	a > i { /* Instance of term */
+		font-style: normal;
+	}
+	dt dfn code, code.idl {
+		font-size: inherit;
+	}
+	dfn var {
+		font-style: normal;
+	}
+
+/** Change Marking ************************************************************/
+
+	del {
+		color: #aa0000;
+		color: var(--del-text);
+		background: transparent;
+		background: var(--del-bg);
+		text-decoration: line-through;
+	}
+	ins {
+		color: #006100;
+		color: var(--ins-text);
+		background: transparent;
+		background: var(--ins-bg);
+		text-decoration: underline;
+	}
+
+	/* for amendments (candidate/proposed changes) */
+
+	.amendment ins, .correction ins, .addition ins,
+	ins[class^=c] {
+		text-decoration-style: dotted;
+	}
+	.amendment del, .correction del, .addition del,
+	del[class^=c] {
+		text-decoration-style: dotted;
+	}
+	.amendment.proposed ins, .correction.proposed ins, .addition.proposed ins,
+	ins[class^=c].proposed {
+		text-decoration-style: double;
+	}
+	.amendment.proposed del, .correction.proposed del, .addition.proposed del,
+	del[class^=c].proposed {
+		text-decoration-style: double;
+	}
+
+/** Miscellaneous improvements to inline formatting ***************************/
+
+	sup {
+		vertical-align: super;
+		font-size: 80%
+	}
+
+/******************************************************************************/
+/*                                    Code                                    */
+/******************************************************************************/
+
+/** General monospace/pre rules ***********************************************/
+
+	pre, code, samp {
+		font-family: Menlo, Consolas, "DejaVu Sans Mono", Monaco, monospace;
+		font-size: .9em;
+		hyphens: none;
+		text-transform: none;
+		text-align: left;
+		text-align: start;
+		font-variant: normal;
+		orphans: 3;
+		widows: 3;
+		page-break-before: avoid;
+	}
+	pre code,
+	code code {
+		font-size: 100%;
+	}
+
+	pre {
+		margin-top: 1em;
+		margin-bottom: 1em;
+		overflow: auto;
+	}
+
+/** Inline Code fragments *****************************************************/
+
+	/* Do something nice. */
+
+/******************************************************************************/
+/*                                    Links                                   */
+/******************************************************************************/
+
+/** General Hyperlinks ********************************************************/
+
+	/* We hyperlink a lot, so make it less intrusive */
+	a[href] {
+		color: #034575;
+		color: var(--a-normal-text);
+		text-decoration: underline #707070;
+		text-decoration: underline var(--a-normal-underline);
+		text-decoration-skip-ink: none;
+	}
+	a:visited {
+		color: #034575;
+		color: var(--a-visited-text);
+		text-decoration-color: #bbb;
+		text-decoration-color: var(--a-visited-underline);
+	}
+
+	/* Indicate interaction with the link */
+	a[href]:focus,
+	a[href]:hover {
+		text-decoration-thickness: 2px;
+	}
+	a[href]:active {
+		color: #c00;
+		color: var(--a-active-text);
+		text-decoration-color: #c00;
+		text-decoration-color: var(--a-active-underline);
+	}
+
+	/* Backout above styling for W3C logo */
+	.head .logo,
+	.head .logo a {
+		border: none;
+		text-decoration: none;
+		background: transparent;
+	}
+
+/******************************************************************************/
+/*                                    Images                                  */
+/******************************************************************************/
+
+	img {
+		border-style: none;
+	}
+
+	img, svg {
+		/* Intentionally not color-scheme aware. */
+		background: white;
+	}
+
+	/* For autogen numbers, add
+	  .caption::before, figcaption::before { content: "Figure " counter(figure) ". "; }
+	*/
+
+	figure, .figure, .sidefigure {
+		page-break-inside: avoid;
+		text-align: center;
+		margin: 2.5em 0;
+	}
+	.figure img,	.sidefigure img,	figure img,
+	.figure object, .sidefigure object, figure object {
+		max-width: 100%;
+		margin: auto;
+		height: auto;
+	}
+	.figure pre, .sidefigure pre, figure pre {
+		text-align: left;
+		display: table;
+		margin: 1em auto;
+	}
+	.figure table, figure table {
+		margin: auto;
+	}
+	@media screen and (min-width: 20em) {
+		.sidefigure {
+			float: right;
+			width: 50%;
+			margin: 0 0 0.5em 0.5em;
+		}
+	}
+	.caption, figcaption, caption {
+		font-style: italic;
+		font-size: 90%;
+	}
+	.caption::before, figcaption::before, figcaption > .marker {
+		font-weight: bold;
+	}
+	.caption, figcaption {
+		counter-increment: figure;
+	}
+
+	/* DL list is indented 2em, but figure inside it is not */
+	dd > .figure, dd > figure { margin-left: -2em; }
+
+/******************************************************************************/
+/*                             Colored Boxes                                  */
+/******************************************************************************/
+
+	.issue, .note, .example, .assertion, .advisement, blockquote,
+	.amendment, .correction, .addition {
+		margin: 1em auto;
+		padding: .5em;
+		border: .5em;
+		border-left-style: solid;
+		page-break-inside: avoid;
+	}
+	span.issue, span.note {
+		padding: .1em .5em .15em;
+		border-right-style: solid;
+	}
+
+	blockquote > :first-child,
+	.note  > p:first-child,
+	.issue > p:first-child,
+	.amendment > p:first-child,
+	.correction > p:first-child,
+	.addition > p:first-child {
+		margin-top: 0;
+	}
+	blockquote > :last-child,
+	.note  > p:last-child,
+	.issue > p:last-child,
+	.amendment > p:last-child,
+	.correction > p:last-child,
+	.addition > p:last-child {
+		margin-bottom: 0;
+	}
+
+
+	.issue::before, .issue > .marker,
+	.example::before, .example > .marker,
+	.note::before, .note > .marker,
+	details.note > summary > .marker,
+	.amendment::before, .amendment > .marker,
+	details.amendment > summary > .marker,
+	.addition::before, .addition > .marker,
+	addition.amendment > summary > .marker,
+	.correction::before, .correction > .marker,
+	correction.amendment > summary > .marker
+	{
+		text-transform: uppercase;
+		padding-right: 1em;
+	}
+
+	.example::before, .example > .marker {
+		display: block;
+		padding-right: 0em;
+	}
+
+/** Blockquotes ***************************************************************/
+
+	blockquote {
+		border-color: silver;
+		border-color: var(--blockquote-border);
+		background: transparent;
+		background: var(--blockquote-bg);
+		color: currentcolor;
+		color: var(--blockquote-text);
+	}
+
+/** Open issue ****************************************************************/
+
+	.issue {
+		border-color: #e05252;
+		border-color: var(--issue-border);
+		background: #fbe9e9;
+		background: var(--issue-bg);
+		color: black;
+		color: var(--issue-text);
+		counter-increment: issue;
+		overflow: auto;
+	}
+	.issue::before, .issue > .marker {
+		color: #831616;
+		color: var(--issueheading-text);
+	}
+	/* Add .issue::before { content: "Issue " counter(issue) " "; } for autogen numbers,
+	  or use class="marker" to mark up the issue number in source. */
+
+/** Example *******************************************************************/
+
+	.example {
+		border-color: #e0cb52;
+		border-color: var(--example-border);
+		background: #fcfaee;
+		background: var(--example-bg);
+		color: black;
+		color: var(--example-text);
+		counter-increment: example;
+		overflow: auto;
+		clear: both;
+	}
+	.example::before, .example > .marker {
+		color: #574b0f;
+		color: var(--exampleheading-text);
+	}
+	/* Add .example::before { content: "Example " counter(example) " "; } for autogen numbers,
+	  or use class="marker" to mark up the example number in source. */
+
+/** Non-normative Note ********************************************************/
+
+	.note {
+		border-color: #52e052;
+		border-color: var(--note-border);
+		background: #e9fbe9;
+		background: var(--note-bg);
+		color: black;
+		color: var(--note-text);
+		overflow: auto;
+	}
+
+	.note::before, .note > .marker,
+	details.note > summary {
+		color: hsl(120, 70%, 30%);
+		color: var(--noteheading-text);
+	}
+	/* Add .note::before { content: "Note "; } for autogen label,
+	  or use class="marker" to mark up the label in source. */
+
+	details.note[open] > summary {
+		border-bottom: 1px silver solid;
+		border-bottom: 1px var(--notesummary-underline) solid;
+	}
+
+/** Assertion Box *************************************************************/
+	/*  for assertions in algorithms */
+
+	.assertion {
+		border-color: #AAA;
+		border-color: var(--assertion-border);
+		background: #EEE;
+		background: var(--assertion-bg);
+		color: black;
+		color: var(--assertion-text);
+	}
+
+/** Advisement Box ************************************************************/
+	/*  for attention-grabbing normative statements */
+
+	.advisement {
+		border-color: orange;
+		border-color: var(--advisement-border);
+		border-style: none solid;
+		background: #fec;
+		background: var(--advisement-bg);
+		color: black;
+		color: var(--advisement-text);
+	}
+	strong.advisement {
+		display: block;
+		text-align: center;
+	}
+	.advisement::before, .advisement > .marker {
+		color: #b35f00;
+		color: var(--advisementheading-text);
+	}
+
+/** Amendment Box *************************************************************/
+
+	.amendment, .correction, .addition {
+		border-color: #330099;
+		border-color: var(--amendment-border);
+		background: #F5F0FF;
+		background: var(--amendment-bg);
+		color: black;
+		color: var(--amendment-text);
+	}
+	.amendment.proposed, .correction.proposed, .addition.proposed {
+		border-style: solid;
+		border-block-width: 0.25em;
+	}
+	.amendment::before, .amendment > .marker,
+	details.amendment > summary::before, details.amendment > summary > .marker,
+	.correction::before, .correction > .marker,
+	details.correction > summary::before, details.correction > summary > .marker,
+	.addition::before, .addition > .marker,
+	details.addition > summary::before, details.addition > summary > .marker {
+		color: #220066;
+		color: var(--amendmentheading-text);
+	}
+	.amendment.proposed::before, .amendment.proposed > .marker,
+	details.amendment.proposed > summary::before, details.amendment.proposed > summary > .marker,
+	.correction.proposed::before, .correction.proposed > .marker,
+	details.correction.proposed > summary::before, details.correction.proposed > summary > .marker,
+	.addition.proposed::before, .addition.proposed > .marker,
+	details.addition.proposed > summary::before, details.addition.proposed > summary > .marker {
+		font-weight: bold;
+	}
+
+/** Spec Obsoletion Notice ****************************************************/
+	/* obnoxious obsoletion notice for older/abandoned specs. */
+
+	details {
+		display: block;
+	}
+	summary {
+		font-weight: bolder;
+	}
+
+	.annoying-warning:not(details),
+	details.annoying-warning:not([open]) > summary,
+	details.annoying-warning[open] {
+		background: hsla(40,100%,50%,0.95);
+		background: var(--warning-bg);
+		color: black;
+		color: var(--warning-text);
+		padding: .75em 1em;
+		border: red;
+		border: var(--warning-border);
+		border-style: solid none;
+		box-shadow: 0 2px 8px black;
+		text-align: center;
+	}
+	.annoying-warning :last-child {
+		margin-bottom: 0;
+	}
+
+@media not print {
+	details.annoying-warning[open] {
+		position: fixed;
+		left: 0;
+		right: 0;
+		bottom: 2em;
+		z-index: 1000;
+	}
+}
+
+	details.annoying-warning:not([open]) > summary {
+		text-align: center;
+	}
+
+/** Entity Definition Boxes ***************************************************/
+
+	.def {
+		padding: .5em 1em;
+		background: #def;
+		background: var(--def-bg);
+		margin: 1.2em 0;
+		border-left: 0.5em solid #8ccbf2;
+		border-left: 0.5em solid var(--def-border);
+		color: black;
+		color: var(--def-text);
+	}
+
+/******************************************************************************/
+/*                                    Tables                                  */
+/******************************************************************************/
+
+	th, td {
+		text-align: left;
+		text-align: start;
+	}
+
+/** Property/Descriptor Definition Tables *************************************/
+
+	table.def {
+		/* inherits .def box styling, see above */
+		width: 100%;
+		border-spacing: 0;
+	}
+
+	table.def td,
+	table.def th {
+		padding: 0.5em;
+		vertical-align: baseline;
+		border-bottom: 1px solid #bbd7e9;
+		border-bottom: 1px solid var(--defrow-border);
+	}
+
+	table.def > tbody > tr:last-child th,
+	table.def > tbody > tr:last-child td {
+		border-bottom: 0;
+	}
+
+	table.def th {
+		font-style: italic;
+		font-weight: normal;
+		padding-left: 1em;
+		width: 3em;
+	}
+
+	/* For when values are extra-complex and need formatting for readability */
+	table td.pre {
+		white-space: pre-wrap;
+	}
+
+	/* A footnote at the bottom of a def table */
+	table.def td.footnote {
+		padding-top: 0.6em;
+	}
+	table.def td.footnote::before {
+		content: " ";
+		display: block;
+		height: 0.6em;
+		width: 4em;
+		border-top: thin solid;
+	}
+
+/** Data tables (and properly marked-up index tables) *************************/
+	/*
+		<table class="data"> highlights structural relationships in a table
+		when correct markup is used (e.g. thead/tbody, th vs. td, scope attribute)
+
+		Use class="complex data" for particularly complicated tables --
+		(This will draw more lines: busier, but clearer.)
+
+		Use class="long" on table cells with paragraph-like contents
+		(This will adjust text alignment accordingly.)
+		Alternately use class="longlastcol" on tables, to have the last column assume "long".
+	*/
+
+	table {
+		word-wrap: normal;
+		overflow-wrap: normal;
+		hyphens: manual;
+	}
+
+	table.data,
+	table.index {
+		margin: 1em auto;
+		border-collapse: collapse;
+		border: hidden;
+		width: 100%;
+	}
+	table.data caption,
+	table.index caption {
+		max-width: 50em;
+		margin: 0 auto 1em;
+	}
+
+	table.data td,  table.data th,
+	table.index td, table.index th {
+		padding: 0.5em 1em;
+		border-width: 1px;
+		border-color: silver;
+		border-color: var(--datacell-border);
+		border-top-style: solid;
+	}
+
+	table.data thead td:empty {
+		padding: 0;
+		border: 0;
+	}
+
+	table.data  thead,
+	table.index thead,
+	table.data  tbody,
+	table.index tbody {
+		border-bottom: 2px solid;
+	}
+
+	table.data colgroup,
+	table.index colgroup {
+		border-left: 2px solid;
+	}
+
+	table.data  tbody th:first-child,
+	table.index tbody th:first-child  {
+		border-right: 2px solid;
+		border-top: 1px solid silver;
+		border-top: 1px solid var(--datacell-border);
+		padding-right: 1em;
+	}
+
+	table.data th[colspan],
+	table.data td[colspan] {
+		text-align: center;
+	}
+
+	table.complex.data th,
+	table.complex.data td {
+		border: 1px solid silver;
+		border: 1px solid var(--datacell-border);
+		text-align: center;
+	}
+
+	table.data.longlastcol td:last-child,
+	table.data td.long {
+		vertical-align: baseline;
+		text-align: left;
+	}
+
+	table.data img {
+		vertical-align: middle;
+	}
+
+
+/*
+Alternate table alignment rules
+
+	table.data,
+	table.index {
+		text-align: center;
+	}
+
+	table.data  thead th[scope="row"],
+	table.index thead th[scope="row"] {
+		text-align: right;
+	}
+
+	table.data  tbody th:first-child,
+	table.index tbody th:first-child  {
+		text-align: right;
+	}
+
+Possible extra rowspan handling
+
+	table.data  tbody th[rowspan]:not([rowspan='1']),
+	table.index tbody th[rowspan]:not([rowspan='1']),
+	table.data  tbody td[rowspan]:not([rowspan='1']),
+	table.index tbody td[rowspan]:not([rowspan='1']) {
+		border-left: 1px solid silver;
+	}
+
+	table.data  tbody th[rowspan]:first-child,
+	table.index tbody th[rowspan]:first-child,
+	table.data  tbody td[rowspan]:first-child,
+	table.index tbody td[rowspan]:first-child{
+		border-left: 0;
+		border-right: 1px solid silver;
+	}
+*/
+
+/******************************************************************************/
+/*                                  Indices                                   */
+/******************************************************************************/
+
+
+/** Table of Contents *********************************************************/
+
+	.toc a {
+		/* More spacing; use padding to make it part of the click target. */
+		padding: 0.1rem 1px 0;
+		/* Larger, more consistently-sized click target */
+		display: block;
+		/* Switch to using border-bottom for underlines */
+		text-decoration: none;
+		border-bottom: 1px solid;
+		/* Reverse color scheme */
+		color: black;
+		color: var(--toclink-text);
+		border-color: #3980b5;
+		border-color: var(--toclink-underline);
+	}
+	.toc a:visited {
+		color: black;
+		color: var(--toclink-visited-text);
+		border-color: #054572;
+		border-color: var(--toclink-visited-underline);
+	}
+	.toc a:focus,
+	.toc a:hover {
+		background: rgba(75%, 75%, 75%, .25);
+		background: var(--a-hover-bg);
+		border-bottom-width: 3px;
+		margin-bottom: -2px;
+	}
+	.toc a:not(:focus):not(:hover) {
+		/* Allow colors to cascade through from link styling */
+		border-bottom-color: transparent;
+	}
+
+	.toc, .toc ol, .toc ul, .toc li {
+		list-style: none; /* Numbers must be inlined into source */
+		/* because generated content isn't search/selectable and markers can't do multilevel yet */
+		margin:  0;
+		padding: 0;
+	}
+	.toc {
+		line-height: 1.1em;
+	}
+
+	/* ToC not indented until third level, but font style & margins show hierarchy */
+	.toc > li			{ font-weight: bold;   }
+	.toc > li li		 { font-weight: normal; }
+	.toc > li li li	  { font-size:   95%;	}
+	.toc > li li li li	{ font-size:   90%;	}
+	.toc > li li li li li { font-size:   85%;	}
+
+	/* @supports not (display:grid) { */
+		.toc > li			{ margin: 1.5rem 0;	}
+		.toc > li li		 { margin: 0.3rem 0;	}
+		.toc > li li li	  { margin-left: 2rem;   }
+
+		/* Section numbers in a column of their own */
+		.toc .secno {
+			float: left;
+			width: 4rem;
+			white-space: nowrap;
+		}
+		.toc > li li li li .secno { font-size: 85%; }
+		.toc > li li li li li .secno { font-size: 100%; }
+
+		.toc li {
+			clear: both;
+		}
+
+		:not(li) > .toc			 { margin-left:  5rem; }
+		.toc .secno				 { margin-left: -5rem; }
+		.toc > li li li .secno	  { margin-left: -7rem; }
+		.toc > li li li li .secno	{ margin-left: -9rem; }
+		.toc > li li li li li .secno { margin-left: -11rem; }
+
+		/* Tighten up indentation in narrow ToCs */
+		@media (max-width: 30em) {
+			:not(li) > .toc			 { margin-left:  4rem; }
+			.toc .secno				 { margin-left: -4rem; }
+			.toc > li li li			 { margin-left:  1rem; }
+			.toc > li li li .secno	  { margin-left: -5rem; }
+			.toc > li li li li .secno	{ margin-left: -6rem; }
+			.toc > li li li li li .secno { margin-left: -7rem; }
+		}
+		/* Loosen it on wide screens */
+		@media screen and (min-width: 78em) {
+			body:not(.toc-inline) :not(li) > .toc			 { margin-left:  4rem; }
+			body:not(.toc-inline) .toc .secno				 { margin-left: -4rem; }
+			body:not(.toc-inline) .toc > li li li			 { margin-left:  1rem; }
+			body:not(.toc-inline) .toc > li li li .secno	  { margin-left: -5rem; }
+			body:not(.toc-inline) .toc > li li li li .secno	{ margin-left: -6rem; }
+			body:not(.toc-inline) .toc > li li li li li .secno { margin-left: -7rem; }
+	}
+	/* } */
+
+	@supports (display:grid) and (display:contents) {
+		/* Use #toc over .toc to override non-@supports rules. */
+		#toc {
+			display: grid;
+			align-content: start;
+			grid-template-columns: auto 1fr;
+			grid-column-gap: 1rem;
+			column-gap: 1rem;
+			grid-row-gap: .6rem;
+			row-gap: .6rem;
+		}
+		#toc h2 {
+			grid-column: 1 / -1;
+			margin-bottom: 0;
+		}
+		#toc ol,
+		#toc li,
+		#toc a {
+			display: contents;
+			/* Switch <a> to subgrid when supported */
+		}
+		#toc span {
+			margin: 0;
+		}
+		#toc > .toc > li > a > span {
+			/* The spans of the top-level list,
+			  comprising the first items of each top-level section. */
+			margin-top: 1.1rem;
+		}
+		#toc#toc .secno { /* Ugh, need more specificity to override base.css */
+			grid-column: 1;
+			width: auto;
+			margin-left: 0;
+		}
+		#toc .content {
+			grid-column: 2;
+			width: auto;
+			margin-right: 1rem;
+		}
+		#toc .content:hover,
+		#toc .content:focus {
+			background: rgba(75%, 75%, 75%, .25);
+			background: var(--a-hover-bg);
+			border-bottom: 3px solid #054572;
+			border-bottom: 3px solid var(--toclink-underline);
+			margin-bottom: -3px;
+		}
+		#toc li li li .content {
+			margin-left: 1rem;
+		}
+		#toc li li li li .content {
+			margin-left: 2rem;
+		}
+	}
+
+
+/** Index *********************************************************************/
+
+	/* Index Lists: Layout */
+	ul.index	  { margin-left: 0; columns: 15em; text-indent: 1em hanging; }
+	ul.index li	{ margin-left: 0; list-style: none; break-inside: avoid; }
+	ul.index li li { margin-left: 1em; }
+	ul.index dl	{ margin-top: 0; }
+	ul.index dt	{ margin: .2em 0 .2em 20px;}
+	ul.index dd	{ margin: .2em 0 .2em 40px;}
+	/* Index Lists: Typography */
+	ul.index ul,
+	ul.index dl { font-size: smaller; }
+	@media not print {
+		ul.index li span:not(.dfn-paneled) {
+			white-space: nowrap;
+			color: transparent; }
+		ul.index li a:hover + span,
+		ul.index li a:focus + span {
+			color: #707070;
+			color: var(--indexinfo-text);
+		}
+	}
+
+/** Index Tables *****************************************************/
+	/* See also the data table styling section, which this effectively subclasses */
+
+	table.index {
+		font-size: small;
+		border-collapse: collapse;
+		border-spacing: 0;
+		text-align: left;
+		margin: 1em 0;
+	}
+
+	table.index td,
+	table.index th {
+		padding: 0.4em;
+	}
+
+	table.index tr:hover td:not([rowspan]),
+	table.index tr:hover th:not([rowspan]) {
+		color: black;
+		color: var(--indextable-hover-text);
+		background: #f7f8f9;
+		background: var(--indextable-hover-bg);
+	}
+
+	/* The link in the first column in the property table (formerly a TD) */
+	table.index th:first-child a {
+		font-weight: bold;
+	}
+
+/** Outdated warning **********************************************************/
+
+.outdated-spec {
+	color: black;
+	color: var(--outdatedspec-text);
+	background-color: rgba(0,0,0,0.5);
+	background-color: var(--outdatedspec-bg);
+}
+
+.outdated-warning {
+	position: fixed;
+	bottom: 50%;
+	left: 0;
+	right: 0;
+	margin: 0 auto;
+	width: 50%;
+	background: maroon;
+	background: var(--outdated-bg);
+	color: white;
+	color: var(--outdated-text);
+	border-radius: 1em;
+	box-shadow: 0 0 1em red;
+	box-shadow: 0 0 1em var(--outdated-shadow);
+	padding: 2em;
+	text-align: center;
+	z-index: 2;
+}
+
+.outdated-warning a {
+	color: currentcolor;
+	background: transparent;
+}
+
+.edited-rec-warning {
+	background: darkorange;
+	background: var(--editedrec-bg);
+	box-shadow: 0 0 1em;
+}
+
+.outdated-warning button {
+	color: var(--outdated-text);
+	border-radius: 1em;
+	box-shadow: 0 0 1em red;
+	box-shadow: 0 0 1em var(--outdated-shadow);
+	padding: 2em;
+	text-align: center;
+	z-index: 2;
+}
+
+.outdated-warning a {
+	color: currentcolor;
+	background: transparent;
+}
+
+.edited-rec-warning {
+	background: darkorange;
+	background: var(--editedrec-bg);
+	box-shadow: 0 0 1em;
+}
+
+.outdated-warning button {
+	position: absolute;
+	top: 0;
+	right:0;
+	margin: 0;
+	border: 0;
+	padding: 0.25em 0.5em;
+	background: transparent;
+	color: white;
+	color: var(--outdated-text);
+	font:1em sans-serif;
+	text-align:center;
+}
+
+.outdated-warning span {
+	display: block;
+}
+
+.outdated-collapsed {
+	bottom: 0;
+	border-radius: 0;
+	width: 100%;
+	padding: 0;
+}
+
+/******************************************************************************/
+/*                                    Print                                   */
+/******************************************************************************/
+
+	@media print {
+		/* Pages have their own margins. */
+		html {
+			margin: 0;
+		}
+		/* Serif for print. */
+		body {
+			font-family: serif;
+		}
+
+		.outdated-warning {
+			position: absolute;
+			border-style: solid;
+			border-color: red;
+		}
+
+		.outdated-warning input {
+			display: none;
+		}
+	}
+	@page {
+		margin: 1.5cm 1.1cm;
+	}
+
+
+
+/******************************************************************************/
+/*                             Overflow Control                               */
+/******************************************************************************/
+
+	.figure .caption, .sidefigure .caption, figcaption {
+		/* in case figure is overlarge, limit caption to 50em */
+		max-width: 50rem;
+		margin-left: auto;
+		margin-right: auto;
+	}
+	.overlarge {
+		/* Magic to create good item positioning:
+		  "content column" is 50ems wide at max; less on smaller screens.
+		  Extra space (after ToC + content) is empty on the right.
+
+		  1. When item < content column, centers item in column.
+		  2. When content < item < available, left-aligns.
+		  3. When item > available, fills available + scroll bar.
+		*/
+		display: grid;
+		grid-template-columns: minmax(0, 50em);
+	}
+	.overlarge > table {
+		/* limit preferred width of table */
+		max-width: 50em;
+		margin-left: auto;
+		margin-right: auto;
+	}
+
+	@media (min-width: 55em) {
+		.overlarge {
+			margin-right: calc(13px + 26.5rem - 50vw);
+			max-width: none;
+		}
+	}
+	@media screen and (min-width: 78em) {
+		body:not(.toc-inline) .overlarge {
+			/* 30.5em body padding 50em content area */
+			margin-right: calc(40em - 50vw) !important;
+		}
+	}
+	@media screen and (min-width: 90em) {
+		body:not(.toc-inline) .overlarge {
+			/* 4em html margin 30.5em body padding 50em content area */
+			margin-right: calc(84.5em - 100vw) !important;
+		}
+	}
+
+	@media not print {
+		.overlarge {
+			overflow-x: auto;
+			/* See Lea Verou's explanation background-attachment:
+			* http://lea.verou.me/2012/04/background-attachment-local/
+			*
+			background: top left  / 4em 100% linear-gradient(to right,  #ffffff, rgba(255, 255, 255, 0)) local,
+						top right / 4em 100% linear-gradient(to left, #ffffff, rgba(255, 255, 255, 0)) local,
+						top left  / 1em 100% linear-gradient(to right,  #c3c3c5, rgba(195, 195, 197, 0)) scroll,
+						top right / 1em 100% linear-gradient(to left, #c3c3c5, rgba(195, 195, 197, 0)) scroll,
+						white;
+			background-repeat: no-repeat;
+			*/
+		}
+	}
+</style>
+<style type="text/css">
+    table, th, td {
+      border: 1px solid black;
+      border-collapse: collapse;
+      vertical-align: top;
+    }
+    th, td {
+      border-left: none;
+      border-right: none;
+      padding: 0px 10px;
+    }
+    th {
+      text-align: center;
+    }
+
+    del { background: #fcc; color: #000; text-decoration: line-through; }
+    ins { background: #cfc; color: #000; }
+    blockquote .highlight:not(.idl) { background: initial; margin: initial; padding: 0.5em }
+    blockquote ul { background: inherit; }
+    blockquote code.highlight:not(.idl) { padding: initial; }
+    blockquote c-[a] { color: inherit; } /* Keyword.Declaration */
+    blockquote c-[b] { color: inherit; } /* Keyword.Type */
+    blockquote c-[c] { color: inherit; } /* Comment */
+    blockquote c-[d] { color: inherit; } /* Comment.Multiline */
+    blockquote c-[e] { color: inherit; } /* Name.Attribute */
+    blockquote c-[f] { color: inherit; } /* Name.Tag */
+    blockquote c-[g] { color: inherit; } /* Name.Variable */
+    blockquote c-[k] { color: inherit; } /* Keyword */
+    blockquote c-[l] { color: inherit; } /* Literal */
+    blockquote c-[m] { color: inherit; } /* Literal.Number */
+    blockquote c-[n] { color: inherit; } /* Name */
+    blockquote c-[o] { color: inherit; } /* Operator */
+    blockquote c-[p] { color: inherit; } /* Punctuation */
+    blockquote c-[s] { color: inherit; } /* Literal.String */
+    blockquote c-[t] { color: inherit; } /* Literal.String.Single */
+    blockquote c-[u] { color: inherit; } /* Literal.String.Double */
+    blockquote c-[cp] { color: inherit; } /* Comment.Preproc */
+    blockquote c-[c1] { color: inherit; } /* Comment.Single */
+    blockquote c-[cs] { color: inherit; } /* Comment.Special */
+    blockquote c-[kc] { color: inherit; } /* Keyword.Constant */
+    blockquote c-[kn] { color: inherit; } /* Keyword.Namespace */
+    blockquote c-[kp] { color: inherit; } /* Keyword.Pseudo */
+    blockquote c-[kr] { color: inherit; } /* Keyword.Reserved */
+    blockquote c-[ld] { color: inherit; } /* Literal.Date */
+    blockquote c-[nc] { color: inherit; } /* Name.Class */
+    blockquote c-[no] { color: inherit; } /* Name.Constant */
+    blockquote c-[nd] { color: inherit; } /* Name.Decorator */
+    blockquote c-[ni] { color: inherit; } /* Name.Entity */
+    blockquote c-[ne] { color: inherit; } /* Name.Exception */
+    blockquote c-[nf] { color: inherit; } /* Name.Function */
+    blockquote c-[nl] { color: inherit; } /* Name.Label */
+    blockquote c-[nn] { color: inherit; } /* Name.Namespace */
+    blockquote c-[py] { color: inherit; } /* Name.Property */
+    blockquote c-[ow] { color: inherit; } /* Operator.Word */
+    blockquote c-[mb] { color: inherit; } /* Literal.Number.Bin */
+    blockquote c-[mf] { color: inherit; } /* Literal.Number.Float */
+    blockquote c-[mh] { color: inherit; } /* Literal.Number.Hex */
+    blockquote c-[mi] { color: inherit; } /* Literal.Number.Integer */
+    blockquote c-[mo] { color: inherit; } /* Literal.Number.Oct */
+    blockquote c-[sb] { color: inherit; } /* Literal.String.Backtick */
+    blockquote c-[sc] { color: inherit; } /* Literal.String.Char */
+    blockquote c-[sd] { color: inherit; } /* Literal.String.Doc */
+    blockquote c-[se] { color: inherit; } /* Literal.String.Escape */
+    blockquote c-[sh] { color: inherit; } /* Literal.String.Heredoc */
+    blockquote c-[si] { color: inherit; } /* Literal.String.Interpol */
+    blockquote c-[sx] { color: inherit; } /* Literal.String.Other */
+    blockquote c-[sr] { color: inherit; } /* Literal.String.Regex */
+    blockquote c-[ss] { color: inherit; } /* Literal.String.Symbol */
+    blockquote c-[vc] { color: inherit; } /* Name.Variable.Class */
+    blockquote c-[vg] { color: inherit; } /* Name.Variable.Global */
+    blockquote c-[vi] { color: inherit; } /* Name.Variable.Instance */
+    blockquote c-[il] { color: inherit; } /* Literal.Number.Integer.Long */
+  </style>
+  <meta content="Bikeshed version e8cbf4ed2, updated Fri Sep 10 10:21:28 2021 -0700" name="generator">
+  <link href="https://wg21.link/DXXXX" rel="canonical">
+  <link href="https://isocpp.org/favicon.ico" rel="icon">
+  <meta content="6cac87dee2e91624e4439461d5fdd888aaccb113" name="document-revision">
+<style>/* style-autolinks */
+
+.css.css, .property.property, .descriptor.descriptor {
+    color: var(--a-normal-text);
+    font-size: inherit;
+    font-family: inherit;
+}
+.css::before, .property::before, .descriptor::before {
+    content: "‘";
+}
+.css::after, .property::after, .descriptor::after {
+    content: "’";
+}
+.property, .descriptor {
+    /* Don't wrap property and descriptor names */
+    white-space: nowrap;
+}
+.type { /* CSS value <type> */
+    font-style: italic;
+}
+pre .property::before, pre .property::after {
+    content: "";
+}
+[data-link-type="property"]::before,
+[data-link-type="propdesc"]::before,
+[data-link-type="descriptor"]::before,
+[data-link-type="value"]::before,
+[data-link-type="function"]::before,
+[data-link-type="at-rule"]::before,
+[data-link-type="selector"]::before,
+[data-link-type="maybe"]::before {
+    content: "‘";
+}
+[data-link-type="property"]::after,
+[data-link-type="propdesc"]::after,
+[data-link-type="descriptor"]::after,
+[data-link-type="value"]::after,
+[data-link-type="function"]::after,
+[data-link-type="at-rule"]::after,
+[data-link-type="selector"]::after,
+[data-link-type="maybe"]::after {
+    content: "’";
+}
+
+[data-link-type].production::before,
+[data-link-type].production::after,
+.prod [data-link-type]::before,
+.prod [data-link-type]::after {
+    content: "";
+}
+
+[data-link-type=element],
+[data-link-type=element-attr] {
+    font-family: Menlo, Consolas, "DejaVu Sans Mono", monospace;
+    font-size: .9em;
+}
+[data-link-type=element]::before { content: "<" }
+[data-link-type=element]::after  { content: ">" }
+
+[data-link-type=biblio] {
+    white-space: pre;
+}</style>
+<style>/* style-colors */
+
+/* Any --*-text not paired with a --*-bg is assumed to have a transparent bg */
+:root {
+    color-scheme: light dark;
+
+    --text: black;
+    --bg: white;
+
+    --unofficial-watermark: url(https://www.w3.org/StyleSheets/TR/2016/logos/UD-watermark);
+
+    --logo-bg: #1a5e9a;
+    --logo-active-bg: #c00;
+    --logo-text: white;
+
+    --tocnav-normal-text: #707070;
+    --tocnav-normal-bg: var(--bg);
+    --tocnav-hover-text: var(--tocnav-normal-text);
+    --tocnav-hover-bg: #f8f8f8;
+    --tocnav-active-text: #c00;
+    --tocnav-active-bg: var(--tocnav-normal-bg);
+
+    --tocsidebar-text: var(--text);
+    --tocsidebar-bg: #f7f8f9;
+    --tocsidebar-shadow: rgba(0,0,0,.1);
+    --tocsidebar-heading-text: hsla(203,20%,40%,.7);
+
+    --toclink-text: var(--text);
+    --toclink-underline: #3980b5;
+    --toclink-visited-text: var(--toclink-text);
+    --toclink-visited-underline: #054572;
+
+    --heading-text: #005a9c;
+
+    --hr-text: var(--text);
+
+    --algo-border: #def;
+
+    --del-text: red;
+    --del-bg: transparent;
+    --ins-text: #080;
+    --ins-bg: transparent;
+
+    --a-normal-text: #034575;
+    --a-normal-underline: #bbb;
+    --a-visited-text: var(--a-normal-text);
+    --a-visited-underline: #707070;
+    --a-hover-bg: rgba(75%, 75%, 75%, .25);
+    --a-active-text: #c00;
+    --a-active-underline: #c00;
+
+    --blockquote-border: silver;
+    --blockquote-bg: transparent;
+    --blockquote-text: currentcolor;
+
+    --issue-border: #e05252;
+    --issue-bg: #fbe9e9;
+    --issue-text: var(--text);
+    --issueheading-text: #831616;
+
+    --example-border: #e0cb52;
+    --example-bg: #fcfaee;
+    --example-text: var(--text);
+    --exampleheading-text: #574b0f;
+
+    --note-border: #52e052;
+    --note-bg: #e9fbe9;
+    --note-text: var(--text);
+    --noteheading-text: hsl(120, 70%, 30%);
+    --notesummary-underline: silver;
+
+    --assertion-border: #aaa;
+    --assertion-bg: #eee;
+    --assertion-text: black;
+
+    --advisement-border: orange;
+    --advisement-bg: #fec;
+    --advisement-text: var(--text);
+    --advisementheading-text: #b35f00;
+
+    --warning-border: red;
+    --warning-bg: hsla(40,100%,50%,0.95);
+    --warning-text: var(--text);
+
+    --amendment-border: #330099;
+    --amendment-bg: #F5F0FF;
+    --amendment-text: var(--text);
+    --amendmentheading-text: #220066;
+
+    --def-border: #8ccbf2;
+    --def-bg: #def;
+    --def-text: var(--text);
+    --defrow-border: #bbd7e9;
+
+    --datacell-border: silver;
+
+    --indexinfo-text: #707070;
+
+    --indextable-hover-text: black;
+    --indextable-hover-bg: #f7f8f9;
+
+    --outdatedspec-bg: rgba(0, 0, 0, .5);
+    --outdatedspec-text: black;
+    --outdated-bg: maroon;
+    --outdated-text: white;
+    --outdated-shadow: red;
+
+    --editedrec-bg: darkorange;
+}</style>
+<style>/* style-counters */
+
+body {
+    counter-reset: example figure issue;
+}
+.issue {
+    counter-increment: issue;
+}
+.issue:not(.no-marker)::before {
+    content: "Issue " counter(issue);
+}
+
+.example {
+    counter-increment: example;
+}
+.example:not(.no-marker)::before {
+    content: "Example " counter(example);
+}
+.invalid.example:not(.no-marker)::before,
+.illegal.example:not(.no-marker)::before {
+    content: "Invalid Example" counter(example);
+}
+
+figcaption {
+    counter-increment: figure;
+}
+figcaption:not(.no-marker)::before {
+    content: "Figure " counter(figure) " ";
+}</style>
+<style>/* style-dfn-panel */
+
+:root {
+    --dfnpanel-bg: #ddd;
+    --dfnpanel-text: var(--text);
+}
+.dfn-panel {
+    position: absolute;
+    z-index: 35;
+    height: auto;
+    width: -webkit-fit-content;
+    width: fit-content;
+    max-width: 300px;
+    max-height: 500px;
+    overflow: auto;
+    padding: 0.5em 0.75em;
+    font: small Helvetica Neue, sans-serif, Droid Sans Fallback;
+    background: var(--dfnpanel-bg);
+    color: var(--dfnpanel-text);
+    border: outset 0.2em;
+}
+.dfn-panel:not(.on) { display: none; }
+.dfn-panel * { margin: 0; padding: 0; text-indent: 0; }
+.dfn-panel > b { display: block; }
+.dfn-panel a { color: var(--dfnpanel-text); }
+.dfn-panel a:not(:hover) { text-decoration: none !important; border-bottom: none !important; }
+.dfn-panel > b + b { margin-top: 0.25em; }
+.dfn-panel ul { padding: 0; }
+.dfn-panel li { list-style: inside; }
+.dfn-panel.activated {
+    display: inline-block;
+    position: fixed;
+    left: .5em;
+    bottom: 2em;
+    margin: 0 auto;
+    max-width: calc(100vw - 1.5em - .4em - .5em);
+    max-height: 30vh;
+}
+
+.dfn-paneled { cursor: pointer; }
+</style>
+<style>/* style-md-lists */
+
+/* This is a weird hack for me not yet following the commonmark spec
+   regarding paragraph and lists. */
+[data-md] > :first-child {
+    margin-top: 0;
+}
+[data-md] > :last-child {
+    margin-bottom: 0;
+}</style>
+<style>/* style-selflinks */
+
+:root {
+    --selflink-text: white;
+    --selflink-bg: gray;
+    --selflink-hover-text: black;
+}
+.heading, .issue, .note, .example, li, dt {
+    position: relative;
+}
+a.self-link {
+    position: absolute;
+    top: 0;
+    left: calc(-1 * (3.5rem - 26px));
+    width: calc(3.5rem - 26px);
+    height: 2em;
+    text-align: center;
+    border: none;
+    transition: opacity .2s;
+    opacity: .5;
+}
+a.self-link:hover {
+    opacity: 1;
+}
+.heading > a.self-link {
+    font-size: 83%;
+}
+li > a.self-link {
+    left: calc(-1 * (3.5rem - 26px) - 2em);
+}
+dfn > a.self-link {
+    top: auto;
+    left: auto;
+    opacity: 0;
+    width: 1.5em;
+    height: 1.5em;
+    background: var(--selflink-bg);
+    color: var(--selflink-text);
+    font-style: normal;
+    transition: opacity .2s, background-color .2s, color .2s;
+}
+dfn:hover > a.self-link {
+    opacity: 1;
+}
+dfn > a.self-link:hover {
+    color: var(--selflink-hover-text);
+}
+
+a.self-link::before            { content: "¶"; }
+.heading > a.self-link::before { content: "§"; }
+dfn > a.self-link::before      { content: "#"; }
+</style>
+<style>/* style-syntax-highlighting */
+
+code.highlight { padding: .1em; border-radius: .3em; }
+pre.highlight, pre > code.highlight { display: block; padding: 1em; margin: .5em 0; overflow: auto; border-radius: 0; }
+
+.highlight:not(.idl) { background: rgba(0, 0, 0, .03); }
+c-[a] { color: #990055 } /* Keyword.Declaration */
+c-[b] { color: #990055 } /* Keyword.Type */
+c-[c] { color: #708090 } /* Comment */
+c-[d] { color: #708090 } /* Comment.Multiline */
+c-[e] { color: #0077aa } /* Name.Attribute */
+c-[f] { color: #669900 } /* Name.Tag */
+c-[g] { color: #222222 } /* Name.Variable */
+c-[k] { color: #990055 } /* Keyword */
+c-[l] { color: #000000 } /* Literal */
+c-[m] { color: #000000 } /* Literal.Number */
+c-[n] { color: #0077aa } /* Name */
+c-[o] { color: #999999 } /* Operator */
+c-[p] { color: #999999 } /* Punctuation */
+c-[s] { color: #a67f59 } /* Literal.String */
+c-[t] { color: #a67f59 } /* Literal.String.Single */
+c-[u] { color: #a67f59 } /* Literal.String.Double */
+c-[cp] { color: #708090 } /* Comment.Preproc */
+c-[c1] { color: #708090 } /* Comment.Single */
+c-[cs] { color: #708090 } /* Comment.Special */
+c-[kc] { color: #990055 } /* Keyword.Constant */
+c-[kn] { color: #990055 } /* Keyword.Namespace */
+c-[kp] { color: #990055 } /* Keyword.Pseudo */
+c-[kr] { color: #990055 } /* Keyword.Reserved */
+c-[ld] { color: #000000 } /* Literal.Date */
+c-[nc] { color: #0077aa } /* Name.Class */
+c-[no] { color: #0077aa } /* Name.Constant */
+c-[nd] { color: #0077aa } /* Name.Decorator */
+c-[ni] { color: #0077aa } /* Name.Entity */
+c-[ne] { color: #0077aa } /* Name.Exception */
+c-[nf] { color: #0077aa } /* Name.Function */
+c-[nl] { color: #0077aa } /* Name.Label */
+c-[nn] { color: #0077aa } /* Name.Namespace */
+c-[py] { color: #0077aa } /* Name.Property */
+c-[ow] { color: #999999 } /* Operator.Word */
+c-[mb] { color: #000000 } /* Literal.Number.Bin */
+c-[mf] { color: #000000 } /* Literal.Number.Float */
+c-[mh] { color: #000000 } /* Literal.Number.Hex */
+c-[mi] { color: #000000 } /* Literal.Number.Integer */
+c-[mo] { color: #000000 } /* Literal.Number.Oct */
+c-[sb] { color: #a67f59 } /* Literal.String.Backtick */
+c-[sc] { color: #a67f59 } /* Literal.String.Char */
+c-[sd] { color: #a67f59 } /* Literal.String.Doc */
+c-[se] { color: #a67f59 } /* Literal.String.Escape */
+c-[sh] { color: #a67f59 } /* Literal.String.Heredoc */
+c-[si] { color: #a67f59 } /* Literal.String.Interpol */
+c-[sx] { color: #a67f59 } /* Literal.String.Other */
+c-[sr] { color: #a67f59 } /* Literal.String.Regex */
+c-[ss] { color: #a67f59 } /* Literal.String.Symbol */
+c-[vc] { color: #0077aa } /* Name.Variable.Class */
+c-[vg] { color: #0077aa } /* Name.Variable.Global */
+c-[vi] { color: #0077aa } /* Name.Variable.Instance */
+c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
+</style>
+<style>/* style-darkmode */
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --text: #ddd;
+        --bg: black;
+
+        --unofficial-watermark: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Cg fill='%23100808' transform='translate(200 200) rotate(-45) translate(-200 -200)' stroke='%23100808' stroke-width='3'%3E%3Ctext x='50%25' y='220' style='font: bold 70px sans-serif; text-anchor: middle; letter-spacing: 6px;'%3EUNOFFICIAL%3C/text%3E%3Ctext x='50%25' y='305' style='font: bold 70px sans-serif; text-anchor: middle; letter-spacing: 6px;'%3EDRAFT%3C/text%3E%3C/g%3E%3C/svg%3E");
+
+        --logo-bg: #1a5e9a;
+        --logo-active-bg: #c00;
+        --logo-text: white;
+
+        --tocnav-normal-text: #999;
+        --tocnav-normal-bg: var(--bg);
+        --tocnav-hover-text: var(--tocnav-normal-text);
+        --tocnav-hover-bg: #080808;
+        --tocnav-active-text: #f44;
+        --tocnav-active-bg: var(--tocnav-normal-bg);
+
+        --tocsidebar-text: var(--text);
+        --tocsidebar-bg: #080808;
+        --tocsidebar-shadow: rgba(255,255,255,.1);
+        --tocsidebar-heading-text: hsla(203,20%,40%,.7);
+
+        --toclink-text: var(--text);
+        --toclink-underline: #6af;
+        --toclink-visited-text: var(--toclink-text);
+        --toclink-visited-underline: #054572;
+
+        --heading-text: #8af;
+
+        --hr-text: var(--text);
+
+        --algo-border: #456;
+
+        --del-text: #f44;
+        --del-bg: transparent;
+        --ins-text: #4a4;
+        --ins-bg: transparent;
+
+        --a-normal-text: #6af;
+        --a-normal-underline: #555;
+        --a-visited-text: var(--a-normal-text);
+        --a-visited-underline: var(--a-normal-underline);
+        --a-hover-bg: rgba(25%, 25%, 25%, .2);
+        --a-active-text: #f44;
+        --a-active-underline: var(--a-active-text);
+
+        --borderedblock-bg: rgba(255, 255, 255, .05);
+
+        --blockquote-border: silver;
+        --blockquote-bg: var(--borderedblock-bg);
+        --blockquote-text: currentcolor;
+
+        --issue-border: #e05252;
+        --issue-bg: var(--borderedblock-bg);
+        --issue-text: var(--text);
+        --issueheading-text: hsl(0deg, 70%, 70%);
+
+        --example-border: hsl(50deg, 90%, 60%);
+        --example-bg: var(--borderedblock-bg);
+        --example-text: var(--text);
+        --exampleheading-text: hsl(50deg, 70%, 70%);
+
+        --note-border: hsl(120deg, 100%, 35%);
+        --note-bg: var(--borderedblock-bg);
+        --note-text: var(--text);
+        --noteheading-text: hsl(120, 70%, 70%);
+        --notesummary-underline: silver;
+
+        --assertion-border: #444;
+        --assertion-bg: var(--borderedblock-bg);
+        --assertion-text: var(--text);
+
+        --advisement-border: orange;
+        --advisement-bg: #222218;
+        --advisement-text: var(--text);
+        --advisementheading-text: #f84;
+
+        --warning-border: red;
+        --warning-bg: hsla(40,100%,20%,0.95);
+        --warning-text: var(--text);
+
+        --amendment-border: #330099;
+        --amendment-bg: #080010;
+        --amendment-text: var(--text);
+        --amendmentheading-text: #cc00ff;
+
+        --def-border: #8ccbf2;
+        --def-bg: #080818;
+        --def-text: var(--text);
+        --defrow-border: #136;
+
+        --datacell-border: silver;
+
+        --indexinfo-text: #aaa;
+
+        --indextable-hover-text: var(--text);
+        --indextable-hover-bg: #181818;
+
+        --outdatedspec-bg: rgba(255, 255, 255, .5);
+        --outdatedspec-text: black;
+        --outdated-bg: maroon;
+        --outdated-text: white;
+        --outdated-shadow: red;
+
+        --editedrec-bg: darkorange;
+    }
+    /* In case a transparent-bg image doesn't expect to be on a dark bg,
+       which is quite common in practice... */
+    img { background: white; }
+}
+@media (prefers-color-scheme: dark) {
+    :root {
+        --selflink-text: black;
+        --selflink-bg: silver;
+        --selflink-hover-text: white;
+    }
+}
+
+@media (prefers-color-scheme: dark) {
+    .highlight:not(.idl) { background: rgba(255, 255, 255, .05); }
+
+    c-[a] { color: #d33682 } /* Keyword.Declaration */
+    c-[b] { color: #d33682 } /* Keyword.Type */
+    c-[c] { color: #2aa198 } /* Comment */
+    c-[d] { color: #2aa198 } /* Comment.Multiline */
+    c-[e] { color: #268bd2 } /* Name.Attribute */
+    c-[f] { color: #b58900 } /* Name.Tag */
+    c-[g] { color: #cb4b16 } /* Name.Variable */
+    c-[k] { color: #d33682 } /* Keyword */
+    c-[l] { color: #657b83 } /* Literal */
+    c-[m] { color: #657b83 } /* Literal.Number */
+    c-[n] { color: #268bd2 } /* Name */
+    c-[o] { color: #657b83 } /* Operator */
+    c-[p] { color: #657b83 } /* Punctuation */
+    c-[s] { color: #6c71c4 } /* Literal.String */
+    c-[t] { color: #6c71c4 } /* Literal.String.Single */
+    c-[u] { color: #6c71c4 } /* Literal.String.Double */
+    c-[ch] { color: #2aa198 } /* Comment.Hashbang */
+    c-[cp] { color: #2aa198 } /* Comment.Preproc */
+    c-[cpf] { color: #2aa198 } /* Comment.PreprocFile */
+    c-[c1] { color: #2aa198 } /* Comment.Single */
+    c-[cs] { color: #2aa198 } /* Comment.Special */
+    c-[kc] { color: #d33682 } /* Keyword.Constant */
+    c-[kn] { color: #d33682 } /* Keyword.Namespace */
+    c-[kp] { color: #d33682 } /* Keyword.Pseudo */
+    c-[kr] { color: #d33682 } /* Keyword.Reserved */
+    c-[ld] { color: #657b83 } /* Literal.Date */
+    c-[nc] { color: #268bd2 } /* Name.Class */
+    c-[no] { color: #268bd2 } /* Name.Constant */
+    c-[nd] { color: #268bd2 } /* Name.Decorator */
+    c-[ni] { color: #268bd2 } /* Name.Entity */
+    c-[ne] { color: #268bd2 } /* Name.Exception */
+    c-[nf] { color: #268bd2 } /* Name.Function */
+    c-[nl] { color: #268bd2 } /* Name.Label */
+    c-[nn] { color: #268bd2 } /* Name.Namespace */
+    c-[py] { color: #268bd2 } /* Name.Property */
+    c-[ow] { color: #657b83 } /* Operator.Word */
+    c-[mb] { color: #657b83 } /* Literal.Number.Bin */
+    c-[mf] { color: #657b83 } /* Literal.Number.Float */
+    c-[mh] { color: #657b83 } /* Literal.Number.Hex */
+    c-[mi] { color: #657b83 } /* Literal.Number.Integer */
+    c-[mo] { color: #657b83 } /* Literal.Number.Oct */
+    c-[sa] { color: #6c71c4 } /* Literal.String.Affix */
+    c-[sb] { color: #6c71c4 } /* Literal.String.Backtick */
+    c-[sc] { color: #6c71c4 } /* Literal.String.Char */
+    c-[dl] { color: #6c71c4 } /* Literal.String.Delimiter */
+    c-[sd] { color: #6c71c4 } /* Literal.String.Doc */
+    c-[se] { color: #6c71c4 } /* Literal.String.Escape */
+    c-[sh] { color: #6c71c4 } /* Literal.String.Heredoc */
+    c-[si] { color: #6c71c4 } /* Literal.String.Interpol */
+    c-[sx] { color: #6c71c4 } /* Literal.String.Other */
+    c-[sr] { color: #6c71c4 } /* Literal.String.Regex */
+    c-[ss] { color: #6c71c4 } /* Literal.String.Symbol */
+    c-[fm] { color: #268bd2 } /* Name.Function.Magic */
+    c-[vc] { color: #cb4b16 } /* Name.Variable.Class */
+    c-[vg] { color: #cb4b16 } /* Name.Variable.Global */
+    c-[vi] { color: #cb4b16 } /* Name.Variable.Instance */
+    c-[vm] { color: #cb4b16 } /* Name.Variable.Magic */
+    c-[il] { color: #657b83 } /* Literal.Number.Integer.Long */
+}
+</style>
+ <body class="h-entry">
+  <div class="head">
+   <p data-fill-with="logo"></p>
+   <h1 class="p-name no-ref" id="title">DXXXXR0<br>Computations as a global solution to concurrency</h1>
+   <h2 class="no-num no-toc no-ref heading settled" id="profile-and-date"><span class="content">Draft Proposal, <time class="dt-updated" datetime="2021-10-12">2021-10-12</time></span></h2>
+   <div data-fill-with="spec-metadata">
+    <dl>
+     <dt class="editor">Author:
+     <dd class="editor p-author h-card vcard"><a class="p-name fn u-email email" href="mailto:lucteo@lucteo.ro">Lucian Radu Teodorescu</a>
+     <dt>Source:
+     <dd><a href="https://github.com/lucteo/executors_solve_concurrency">GitHub</a>
+     <dt>Issue Tracking:
+     <dd><a href="https://github.com/lucteo/executors_solve_concurrency/issues">GitHub</a>
+     <dt>Project:
+     <dd>ISO/IEC JTC1/SC22/WG21 14882: Programming Language — C++
+     <dt>Audience:
+     <dd>SG1, LEWG
+    </dl>
+   </div>
+   <div data-fill-with="warning"></div>
+   <hr title="Separator for header">
+  </div>
+  <nav data-fill-with="table-of-contents" id="toc">
+   <h2 class="no-num no-toc no-ref" id="contents">Table of Contents</h2>
+   <ol class="toc" role="directory">
+    <li>
+     <a href="#intro"><span class="secno">1</span> <span class="content">Introduction</span></a>
+     <ol class="toc">
+      <li><a href="#motivation"><span class="secno">1.1</span> <span class="content">Motivation</span></a>
+      <li><a href="#approach"><span class="secno">1.2</span> <span class="content">Approach and limitations</span></a>
+     </ol>
+    <li>
+     <a href="#revisions"><span class="secno">2</span> <span class="content">Revision history</span></a>
+     <ol class="toc">
+      <li><a href="#r0"><span class="secno">2.1</span> <span class="content">R0</span></a>
+     </ol>
+    <li>
+     <a href="#conventions"><span class="secno">3</span> <span class="content">Conventions and terminology</span></a>
+     <ol class="toc">
+      <li><a href="#conventions-app"><span class="secno">3.1</span> <span class="content">Concurrent applications</span></a>
+      <li><a href="#conventions-tasks"><span class="secno">3.2</span> <span class="content">Tasks and computations</span></a>
+      <li><a href="#conventions-task_relations"><span class="secno">3.3</span> <span class="content">Task relations</span></a>
+     </ol>
+    <li>
+     <a href="#conc-tasks"><span class="secno">4</span> <span class="content">Concurrency with tasks</span></a>
+     <ol class="toc">
+      <li><a href="#conc-tasks-programs"><span class="secno">4.1</span> <span class="content">All concurrent programs can be expressed in terms of tasks</span></a>
+      <li><a href="#conc-tasks-algo"><span class="secno">4.2</span> <span class="content">A general scheduling method</span></a>
+      <li><a href="#conc-tasks-properties"><span class="secno">4.3</span> <span class="content">Properties of the general scheduling method</span></a>
+      <li>
+       <a href="#conc-tasks-specialized"><span class="secno">4.4</span> <span class="content">Specialized schedulers</span></a>
+       <ol class="toc">
+        <li><a href="#conc-tasks-specialized-ser"><span class="secno">4.4.1</span> <span class="content">Mutexes can be modeled with serializers</span></a>
+        <li><a href="#conc-tasks-specialized-nser"><span class="secno">4.4.2</span> <span class="content">Semaphores can be modeled with n-serializers</span></a>
+        <li><a href="#conc-tasks-specialized-rwser"><span class="secno">4.4.3</span> <span class="content">Read-write mutexes can be modeled with rw-serializers</span></a>
+        <li><a href="#conc-tasks-specialized-beyond"><span class="secno">4.4.4</span> <span class="content">Beyond serializers</span></a>
+       </ol>
+     </ol>
+    <li>
+     <a href="#computations"><span class="secno">5</span> <span class="content">Concurrency with computations</span></a>
+     <ol class="toc">
+      <li><a href="#computations-applicability"><span class="secno">5.1</span> <span class="content">General applicability of computations</span></a>
+      <li><a href="#computations-high"><span class="secno">5.2</span> <span class="content">High-level concurrency</span></a>
+      <li><a href="#computations-composability"><span class="secno">5.3</span> <span class="content">Composability and decomposability</span></a>
+      <li>
+       <a href="#computations-others"><span class="secno">5.4</span> <span class="content">Other considerations</span></a>
+       <ol class="toc">
+        <li><a href="#computations-others-ser"><span class="secno">5.4.1</span> <span class="content">Using specialized schedulers</span></a>
+        <li><a href="#computations-others-repeatable"><span class="secno">5.4.2</span> <span class="content">Repeatable computations</span></a>
+       </ol>
+     </ol>
+    <li><a href="#conclusions"><span class="secno">6</span> <span class="content">Final thoughts and conclusions</span></a>
+    <li><a href="#recommendations"><span class="secno">7</span> <span class="content">Recommendations</span></a>
+    <li><a href="#todos"><span class="secno">8</span> <span class="content">TODOs</span></a>
+    <li>
+     <a href="#index"><span class="secno"></span> <span class="content">Index</span></a>
+     <ol class="toc">
+      <li><a href="#index-defined-here"><span class="secno"></span> <span class="content">Terms defined by this specification</span></a>
+     </ol>
+    <li>
+     <a href="#references"><span class="secno"></span> <span class="content">References</span></a>
+     <ol class="toc">
+      <li><a href="#informative"><span class="secno"></span> <span class="content">Informative References</span></a>
+     </ol>
+   </ol>
+  </nav>
+  <main>
+<script>
+MathJax = {
+  tex: {
+    inlineMath: [['$', '$'], ['\\(', '\\)']]
+  }
+};
+</script>
+<script async src="https://cdn.jsdelivr.net/npm/mathjax@3.0.0/es5/tex-mml-chtml.js"></script>
+   <h2 class="heading settled" data-level="1" id="intro"><span class="secno">1. </span><span class="content">Introduction</span><a class="self-link" href="#intro"></a></h2>
+   <p>This paper aims at providing proof that the senders/receivers model proposed by <a data-link-type="biblio" href="#biblio-p2300r1">[P2300R1]</a> can constitute a global solution to concurrency.</p>
+   <h3 class="heading settled" data-level="1.1" id="motivation"><span class="secno">1.1. </span><span class="content">Motivation</span><a class="self-link" href="#motivation"></a></h3>
+   <p>Adding a concurrency model in the C++ standard is not something to be taken lightly. It is not an incremental change, it’s a major shift in direction, which hopefully changes the way C++ developers write concurrent code.</p>
+   <p>When proposing such a model, we have to ensure that we have the right semantics at the low-level (composability, error handling, efficiency, usability, genericity, interoperability with other language features, etc.), but also at the high-level -- the generality of the proposed model. As the low-level parts of the proposal are well covered by the proposal itself and other papers/discussions in the standard committee, this paper explores the generality of the proposed model.</p>
+   <p>It tries to answer the following questions:</p>
+   <ul>
+    <li data-md>
+     <p>Can senders/receivers be used to solve any type of concurrent problem?</p>
+    <li data-md>
+     <p>Can senders/receivers eliminate the classic approach of using locks?</p>
+    <li data-md>
+     <p>Can servers/receivers be used as building blocks, while designing the concurrency aspects of the programs?</p>
+    <li data-md>
+     <p>Is there anything else that we need to add to the proposal so that senders/receivers become a general solution to concurrency?</p>
+   </ul>
+   <h3 class="heading settled" data-level="1.2" id="approach"><span class="secno">1.2. </span><span class="content">Approach and limitations</span><a class="self-link" href="#approach"></a></h3>
+   <p>The paper tries to consider concurrent problems in a general form. It tries to prove general characteristics of programs that can be built using this model. The paper is just concerned with the fact that applications have work that needs to be executed, and they can utilize threads to perform the work. While doing so, the paper abstracts out the low-level details of the problems.</p>
+   <p>For example, the following points are not covered at all in the paper:</p>
+   <ul>
+    <li data-md>
+     <p>error handling</p>
+    <li data-md>
+     <p>performance</p>
+    <li data-md>
+     <p>usability of the code</p>
+    <li data-md>
+     <p>any transformations that the programmer might need to do from a "classic" model to the model proposed by senders/receivers</p>
+   </ul>
+   <p>All of these are extremely important points, but they do not constitute the focus of this paper. The paper shows that you can build concurrent programs out of computations hierarchically, but it doesn’t provide the best practices for that. This is similar to the work of Böhm and Jacopini that proves that all programs can be written with sequence, selection, and repetition, but does not show the best practices to structure the code.</p>
+   <h2 class="heading settled" data-level="2" id="revisions"><span class="secno">2. </span><span class="content">Revision history</span><a class="self-link" href="#revisions"></a></h2>
+   <h3 class="heading settled" data-level="2.1" id="r0"><span class="secno">2.1. </span><span class="content">R0</span><a class="self-link" href="#r0"></a></h3>
+   <p>Initial revision.</p>
+   <h2 class="heading settled" data-level="3" id="conventions"><span class="secno">3. </span><span class="content">Conventions and terminology</span><a class="self-link" href="#conventions"></a></h2>
+   <h3 class="heading settled" data-level="3.1" id="conventions-app"><span class="secno">3.1. </span><span class="content">Concurrent applications</span><a class="self-link" href="#conventions-app"></a></h3>
+   <p>This paper looks at applications from a concurrency perspective. We are interested in the design of the concurrent application, on how the work <em>can</em> be arranged onto threads, not on how it will actually be executed on the target machine.</p>
+   <p>For our discussion, we use the sufficiently general terms <dfn class="dfn-paneled" data-dfn-type="dfn" data-noexport id="work">work</dfn> and <dfn class="dfn-paneled" data-dfn-type="dfn" data-noexport id="threads">threads</dfn>. The work can mean any type of work that can be executed in a concurrent/parallel machine, and the thread can mean any type of execution abstraction. For example, threads can be OS threads, can be CPU cores of different types, can be GPU cores, etc.</p>
+   <p>The aim is to focus on the most general aspects of concurrency to include all classes of concurrency problems.</p>
+   <p>For exposing certain types of problems it’s often useful to assume that the target machine has an infinite amount of threads available.</p>
+   <h3 class="heading settled" data-level="3.2" id="conventions-tasks"><span class="secno">3.2. </span><span class="content">Tasks and computations</span><a class="self-link" href="#conventions-tasks"></a></h3>
+   <p>We call a <dfn class="dfn-paneled" data-dfn-type="dfn" data-noexport id="task">task</dfn> an independent unit of <a data-link-type="dfn" href="#work" id="ref-for-work">work</a>, executed on one thread (the execution of the work on the thread is serial).</p>
+   <p>We call a <dfn class="dfn-paneled" data-dfn-type="dfn" data-noexport id="unit-of-work">unit of work</dfn> that work which doesn’t make sense to be divided further for concurrency reasons. If a work chunk has distinct parts that have different concurrency constraints, then that particular work is not a unit of work.</p>
+   <p>The tasks should be <em>independent</em>, in the following sense: two tasks that can be run in parallel should not block on each other.</p>
+   <p>Whenever we are referring to <a data-link-type="dfn" href="#work" id="ref-for-work①">work</a> and tasks, we are referring to actual run-time work. For example, if the body of a function corresponds to the <a data-link-type="dfn" href="#unit-of-work" id="ref-for-unit-of-work">unit of work</a>, we would have as many tasks as we would have invocations of that function. Tasks describe run-time behavior, not static behavior.</p>
+   <p>We call an <dfn class="dfn-paneled" data-dfn-type="dfn" data-noexport id="async-computation">async computation</dfn> what <a data-link-type="biblio" href="#biblio-p2300r1">[P2300R1]</a> calls a <em>sender object</em>. As the whole paper is about asynchronicity, we often omit the prefix <em>async</em> and simply call it <dfn class="dfn-paneled" data-dfn-type="dfn" data-noexport id="computation">computation</dfn>.</p>
+   <p>Computations can represent parts of tasks (when multiple senders are chained together to form a task), can represent exactly one task (a computation is executed on one thread, and finishing the computation typically means finishing the work to be executed on that thread), or more than one task (when work is executed on more than one thread). We call a <dfn class="dfn-paneled" data-dfn-type="dfn" data-noexport id="unit-computation">unit computation</dfn> a computation that matches a <a data-link-type="dfn" href="#task" id="ref-for-task">task</a>. Also, we call a <dfn class="dfn-paneled" data-dfn-type="dfn" data-noexport id="multi-unit-computation">multi-unit computation</dfn> a computation that corresponds to multiple (complete) <a data-link-type="dfn" href="#task" id="ref-for-task①">tasks</a>.</p>
+   <p><a data-link-type="dfn" href="#task" id="ref-for-task②">Tasks</a> are more appropriate to express constraints and prove the correctness of concurrent programs, while <a data-link-type="dfn" href="#computation" id="ref-for-computation">computations</a> are more appropriate to express concurrency building blocks at different levels. Having defined unit computations allows us to transfer the findings that we have on <a data-link-type="dfn" href="#task" id="ref-for-task③">tasks</a> to <a data-link-type="dfn" href="#computation" id="ref-for-computation①">computations</a>.</p>
+   <h3 class="heading settled" data-level="3.3" id="conventions-task_relations"><span class="secno">3.3. </span><span class="content">Task relations</span><a class="self-link" href="#conventions-task_relations"></a></h3>
+   <p>Let $T$ be the set of all the <a data-link-type="dfn" href="#task" id="ref-for-task④">tasks</a> in the application. Let $parSets(T)$ be the set of all the sets of tasks that can run in parallel without safety issues. If $P \in parSets(T)$, we are interested in finding what tasks we can add to $P$ such that the resulting set is also an element of $parSets(T)$.</p>
+   <p>When a task is missing from a particular safe set, we say that it has a <dfn class="dfn-paneled" data-dfn-type="dfn" data-noexport id="conflict">conflict</dfn> with that set. We note this mathematically as $conflict(t, P), t \in T, P \in parSets(T)$.</p>
+   <p>Most of the time, these conflicts are binary; that is, a task $t_1$ cannot be run in parallel with another task $t_2$. We will look at the binary conflicts in more detail. But, there are cases in which conflicts are non-binary. For example, trying to simulate with tasks a semaphore with a count of 3, we may not have conflicts between any task pairs, but we might have conflicts when adding more than 3 tasks.</p>
+   <p>If $t \in T$ is a task, we denote by $safePar(t)$ the set of all the tasks of the application that are safe to run in parallel with task $t$ (we are looking at binary conflicts).</p>
+   <p>There are cases in which, by the construction of the application, a task $t_1$ is always run before another task $t_2$. We say that $t_1$ is a <dfn class="dfn-paneled" data-dfn-type="dfn" data-noexport id="predecessor">predecessor</dfn> of $t_2$, and we denote this by $t_1 \rightarrow t_2$. We also say that $t_2$ is a <dfn class="dfn-paneled" data-dfn-type="dfn" data-noexport id="successor">successor</dfn> of $t_1$. Please note that these relations can be direct, or indirect (i.e., there is a $t_k$ for which $t_1 \rightarrow t_k$ and $t_k \rightarrow t_2$).</p>
+   <p>We also denote by $succ(t)$ the set of all tasks $t_k$ for which $t \rightarrow t_k$, and by $pred(t)$ the set of all tasks $t_k$ for which $t_k \rightarrow t$.</p>
+   <p>Finally, we denote by $restricted(t)$ all the tasks in the application different from $t$, that are not in $safePar(t) \cap succ(t) \cap pred(t)$. If $t_k \in restricted(t)$, we write $t \sim t_k$ and we say that there is a <dfn class="dfn-paneled" data-dfn-type="dfn" data-noexport id="restriction">restriction</dfn> between $t$ and $t_k$. Please note that <a data-link-type="dfn" href="#restriction" id="ref-for-restriction">restriction</a> is a reflexive relation.</p>
+   <p>We call a <dfn class="dfn-paneled" data-dfn-type="dfn" data-noexport id="constraint">constraint</dfn> to be either a <a data-link-type="dfn" href="#restriction" id="ref-for-restriction①">restriction</a> or a <a data-link-type="dfn" href="#successor" id="ref-for-successor">successor</a> / <a data-link-type="dfn" href="#predecessor" id="ref-for-predecessor">predecessor</a> relation. In our terminology, <a data-link-type="dfn" href="#constraint" id="ref-for-constraint">constraint</a> is a binary relation, while <a data-link-type="dfn" href="#conflict" id="ref-for-conflict">conflict</a> is an n-nary relation.</p>
+   <p>With these definitions, for any task $t$ the following hold:</p>
+   <p>\[succ(t) \cap pred(t) = \emptyset\]</p>
+   <p>\[safePar(t) \cap restricted(t) = \emptyset\]</p>
+   <p>\[safePar(t) \cap (succ(t) \cup pred(t) \cup restricted(t)) = \emptyset\]</p>
+   <p>\[safePar(t) \cup restricted(t) \cup succ(t) \cup pred(t) \cup \{t\} = T\]</p>
+   <p>In plain English, for a given task $t$, all the other tasks are either <a data-link-type="dfn" href="#predecessor" id="ref-for-predecessor①">predecessors</a>, either <a data-link-type="dfn" href="#successor" id="ref-for-successor①">successors</a>, either in $restricted(t)$ or in $safePar(t)$. We partition the space of all the other tasks into predecessors, successors, restricted tasks, and tasks that can safely be run in parallel. Again, these just cover binary conflicts.</p>
+   <h2 class="heading settled" data-level="4" id="conc-tasks"><span class="secno">4. </span><span class="content">Concurrency with tasks</span><a class="self-link" href="#conc-tasks"></a></h2>
+   <p>In this section, we show that there is a general algorithm for scheduling <a data-link-type="dfn" href="#task" id="ref-for-task⑤">tasks</a> that for all programs expressed in terms of tasks will ensure safety (with respect to concurrency) without needing user-level synchronization primitives (mutexes, semaphores, etc.). Moreover, this algorithm will have the maximum efficiency possible (under certain generalizing assumptions).</p>
+   <h3 class="heading settled" data-level="4.1" id="conc-tasks-programs"><span class="secno">4.1. </span><span class="content">All concurrent programs can be expressed in terms of tasks</span><a class="self-link" href="#conc-tasks-programs"></a></h3>
+   <p>One important precondition for all our claims is that concurrent programs can be represented using tasks. We don’t have all the basic terms rigorously defined, so it would be hard to have rigorous proof; instead, we will attempt an informal proof.</p>
+   <p>We start from the fact that all concurrent programs can be represented with <a data-link-type="dfn" href="#threads" id="ref-for-threads">threads</a> (of various types) and chunks of <a data-link-type="dfn" href="#work" id="ref-for-work②">work</a> associated with threads.</p>
+   <p>The chunks of work associated with threads are typically bigger than what we call <a data-link-type="dfn" href="#unit-of-work" id="ref-for-unit-of-work①">units of work</a>. In this case, we break down larger chunks of work into smaller chunks of work until we reach <a data-link-type="dfn" href="#unit-of-work" id="ref-for-unit-of-work②">units of work</a>, i.e., <a data-link-type="dfn" href="#task" id="ref-for-task⑥">tasks</a>.</p>
+   <p><br></p>
+   <p>There are cases in which chunks of work contain synchronization primitives. We break this into smaller chunks of work, at the points in which the synchronization points interact with the execution (i.e., at the points in which the synchronization primitives are called). While doing so, we replace the effect of synchronization primitives with <a data-link-type="dfn" href="#constraint" id="ref-for-constraint①">constraints</a>.</p>
+   <p>There are ways to transform all the synchronization primitives in <a data-link-type="dfn" href="#constraint" id="ref-for-constraint②">constraints</a>/<a data-link-type="dfn" href="#conflict" id="ref-for-conflict①">conflicts</a> between work chunks. We will exemplify this with the transformation of a (locally scoped) mutex into <a data-link-type="dfn" href="#constraint" id="ref-for-constraint③">constraints</a> (partially because mutexes are very common, and partially because we can use locally scoped mutexes to implement all other synchronization items).</p>
+   <p>Chunks of work containing a particular locally scoped mutex can be expressed as $(pre_{i}; protected_{i}; post_{i})$, where $pre_{i}$ is the work done before taking the mutex, $protected_{i}$ is the work done while holding the mutex, and $post_{i}$ the work done after exiting the mutex. With this, one needs to add the following <a data-link-type="dfn" href="#constraint" id="ref-for-constraint④">constraints</a> between the work chunks:</p>
+   <p>\[pre_{i} \rightarrow protected_{i}, \forall i\]
+\[protected_{i} \rightarrow post_{i}, \forall i\]
+\[protected_{i} \sim protected_{j}, \forall i \neq j\]</p>
+   <p>The reader will easily see that using these <a data-link-type="dfn" href="#constraint" id="ref-for-constraint⑤">constraints</a> we arrange the work to have exactly the same concurrent behavior.</p>
+   <p>Similarly, for semaphores, we break down the work at the points in which the semaphores are called and ensure that the work chunks that can wait have <a data-link-type="dfn" href="#constraint" id="ref-for-constraint⑥">constraints</a> relating them to the work chunks waited on. Similarly, with every synchronization primitive we break the work at the point where the synchronization primitive is called and add <a data-link-type="dfn" href="#constraint" id="ref-for-constraint⑦">constraints</a> between the parts that can block and the parts that we are blocking on.</p>
+   <p>Creating threads of execution can be described with <a data-link-type="dfn" href="#predecessor" id="ref-for-predecessor②">predecessor</a> relations, where more than one chunks of work depend on one chunk of work. Similarly, thread join operations can be described with <a data-link-type="dfn" href="#predecessor" id="ref-for-predecessor③">predecessor</a>, where one chunk of work depends on multiple chunks of work (current thread and the thread we are joining with).</p>
+   <p><br></p>
+   <p>Thus, putting all these together, regardless of the size of the work chunks, we can divide it into units of work that are independent of each other. This leads to the conclusion that we can divide all work chunks into tasks.</p>
+   <p>If all work chunks can be divided into tasks, it means that all the programs can be represented in terms of tasks.</p>
+   <p>In other words, all the concurrent programs can be expressed as acyclic directed graphs in which we have <a data-link-type="dfn" href="#successor" id="ref-for-successor②">successor</a> relations as links, but we additionally have <a data-link-type="dfn" href="#restriction" id="ref-for-restriction②">restrictions</a> and general <a data-link-type="dfn" href="#conflict" id="ref-for-conflict②">conflicts</a> expressed in them.</p>
+   <p>The following picture shows an example of such a graph. We have arrows to represent <a data-link-type="dfn" href="#successor" id="ref-for-successor③">successor</a> / <a data-link-type="dfn" href="#predecessor" id="ref-for-predecessor④">predecessor</a> relations and simple red lines to represent <a data-link-type="dfn" href="#restriction" id="ref-for-restriction③">restriction</a> relations (we are showing just binary relations).</p>
+   <center><img alt="Graph of tasks" src="images/1_tasks_graph.png" width="75%"></center>
+   <p>In this picture, tasks $T_1$, $T_4$, $T_9$ and $T_{10}$ are <a data-link-type="dfn" href="#predecessor" id="ref-for-predecessor⑤">predecessors</a> of $T_{14}$, and task $T_{18}$ is a <a data-link-type="dfn" href="#successor" id="ref-for-successor④">successor</a>. Task $T_{14}$ has one <a data-link-type="dfn" href="#restriction" id="ref-for-restriction④">restriction</a>: $T_{14} \sim T_{15}$. This means that tasks $T_2$, $T_6$, $T_7$, $T_{13}$, $T_{17}$, $T_3$, $T_8$, $T_5$, $T_{11}$, $T_{12}$ and $T_{16}$ can be safely executed in parallel with $T_{14}$.</p>
+   <p>We see how the program can be represented in terms of tasks and how the relations avoid the need for synchronization primitives.</p>
+   <p>This is a very important result, as it allows us to reason about the concurrency aspects of the programs and allows us to avoid blocking synchronization primitives.</p>
+   <h3 class="heading settled" data-level="4.2" id="conc-tasks-algo"><span class="secno">4.2. </span><span class="content">A general scheduling method</span><a class="self-link" href="#conc-tasks-algo"></a></h3>
+   <p>With respect to the lifetime of the <a data-link-type="dfn" href="#task" id="ref-for-task⑦">tasks</a>, we recognize three important moments:</p>
+   <ul>
+    <li data-md>
+     <p>when the task is created</p>
+    <li data-md>
+     <p>when the task is ready to be executed</p>
+    <li data-md>
+     <p>when the task is finished executing</p>
+   </ul>
+   <p>Based on these three moments, we can associate a state for each task:</p>
+   <ul>
+    <li data-md>
+     <p><em>pending</em> -- the task is created, but not yet ready to be executed</p>
+    <li data-md>
+     <p><em>active</em> -- the task is ready to be executed, or in the process of executing</p>
+    <li data-md>
+     <p><em>completed</em> -- the task has finished executing</p>
+   </ul>
+   <p>A task can have only one state at a given time. A task is allowed to transition from <em>pending</em> to <em>active</em> and from <em>active</em> to <em>completed</em>, and no other transitions are valid.</p>
+   <p>The goal of our scheduling method is to associate move tasks from the <em>pending</em> to the <em>completed</em> state.</p>
+   <p>Please note that there might be tasks in the <em>active</em> state that are not yet executing. For example, we might have 1000 <em>active</em> tasks, but only 8 threads handling tasks; thus, we would only execute 8 tasks at a given time. Another way to look at this is to consider that the hardware potentially has an infinity of cores.</p>
+   <p>The key point of the method is to act at two different points in the lifetime of the task: when the task is created (passed to our abstraction), and when the task finished executing.</p>
+   <p>Below there is a pseudo-code for the proposed method:</p>
+<pre class="language-C++ highlight"><c- k>struct</c-> <c- nc>safe_executor</c-> <c- p>{</c->
+    <c- b>void</c-> <c- nf>execute</c-><c- p>(</c-><c- n>task</c-> <c- n>t</c-><c- p>)</c-> <c- p>{</c->
+        <c- c1>// For simplicity, assume that everything is synchronized</c->
+        <c- n>std</c-><c- o>::</c-><c- n>lock_guard</c-><c- o>&lt;</c-><c- n>std</c-><c- o>::</c-><c- n>mutex</c-><c- o>></c-> <c- n>lock</c-><c- p>(</c-><c- n>transition_mutex</c-><c- p>());</c->
+        <c- c1>// Can the task be moved directly into active state?</c->
+        <c- k>if</c-> <c- p>(</c-> <c- n>can_be_active</c-><c- p>(</c-><c- n>t</c-><c- p>)</c-> <c- p>)</c-> <c- p>{</c->
+            <c- n>set_active</c-><c- p>(</c-><c- n>t</c-><c- p>);</c->
+            <c- n>active_tasks</c-><c- p>().</c-><c- n>add</c-><c- p>(</c-><c- n>t</c-><c- p>);</c->
+            <c- n>start_executing</c-><c- p>(</c-><c- n>t</c-><c- p>,</c-> <c- o>&amp;</c-><c- n>on_task_completed</c-><c- p>);</c->
+        <c- p>}</c->
+        <c- k>else</c-> <c- p>{</c->
+            <c- c1>// Cannot execute the task yet; make it pending</c->
+            <c- n>set_pending</c-><c- p>(</c-><c- n>t</c-><c- p>);</c->
+            <c- n>pending_tasks</c-><c- p>().</c-><c- n>add</c-><c- p>(</c-><c- n>t</c-><c- p>);</c->
+        <c- p>}</c->
+    <c- p>}</c->
+
+<c- nl>private</c-><c- p>:</c->
+    <c- b>void</c-> <c- n>on_task_completed</c-><c- p>(</c-><c- n>task</c-> <c- n>t</c-><c- p>)</c-> <c- p>{</c->
+        <c- c1>// Atomically move tasks to pending to ensure safety</c->
+        <c- n>std</c-><c- o>::</c-><c- n>lock_guard</c-><c- o>&lt;</c-><c- n>std</c-><c- o>::</c-><c- n>mutex</c-><c- o>></c-> <c- n>lock</c-><c- p>(</c-><c- n>transition_mutex</c-><c- p>());</c->
+        <c- n>set_completed</c-><c- p>(</c-><c- n>t</c-><c- p>);</c->
+        <c- c1>// Move to pending all the tasks that can be active</c->
+        <c- k>for</c-> <c- p>(</c-> <c- k>auto</c-> <c- nl>t2</c-><c- p>:</c-> <c- n>pending_tasks</c-><c- p>()</c-> <c- p>)</c-> <c- p>{</c->        
+            <c- k>if</c-> <c- p>(</c-> <c- n>can_be_active</c-><c- p>(</c-><c- n>t2</c-><c- p>)</c-> <c- p>)</c-> <c- p>{</c->
+                <c- n>set_active</c-><c- p>(</c-><c- n>t</c-><c- p>);</c->
+                <c- n>start_executing</c-><c- p>(</c-><c- n>t</c-><c- p>,</c-> <c- o>&amp;</c-><c- n>on_task_completed</c-><c- p>);</c->
+            <c- p>}</c->
+        <c- p>}</c->
+    <c- p>}</c->
+    <c- b>bool</c-> <c- n>can_be_active</c-><c- p>(</c-><c- n>task</c-><c- o>&amp;</c-> <c- n>t</c-><c- p>)</c-> <c- p>{</c->
+        <c- c1>// If not all predecessors in the completed state the task cannot be active</c->
+        <c- k>for</c-> <c- p>(</c-> <c- k>auto</c-> <c- nl>t2</c-><c- p>:</c-> <c- n>direct_predecessor_of</c-><c- p>(</c-><c- n>t</c-><c- p>)</c-> <c- p>)</c->
+            <c- k>if</c-> <c- p>(</c-> <c- o>!</c-><c- n>is_completed</c-><c- p>(</c-><c- n>t2</c-><c- p>)</c-> <c- p>)</c->
+                <c- k>return</c-> false<c- p>;</c->
+        <c- c1>// A task that has restrictions with another active task cannot be active</c->
+        <c- k>for</c-> <c- p>(</c-> <c- k>auto</c-> <c- nl>t2</c-><c- p>:</c-> <c- n>restrictions_of</c-><c- p>(</c-><c- n>t</c-><c- p>)</c-> <c- p>)</c->
+            <c- k>if</c-> <c- p>(</c-> <c- n>is_active</c-><c- p>(</c-><c- n>t2</c-><c- p>)</c-> <c- p>)</c->
+                <c- k>return</c-> false<c- p>;</c->
+        <c- c1>// We might have non-binary conflicts</c->
+        <c- k>if</c-> <c- p>(</c-> <c- n>has_other_conflicts</c-><c- p>(</c-><c- n>t</c-><c- p>,</c-> <c- n>active_tasks</c-><c- p>())</c-> <c- p>)</c->
+            <c- k>return</c-> false<c- p>;</c->
+        <c- c1>// Otherwise the task can be active</c->
+        <c- k>return</c-> true<c- p>;</c->
+    <c- p>}</c->
+    <c- p>...</c->
+<c- p>};</c->
+</pre>
+   <p>When the task is created (i.e., added to our abstraction), we check if the task can be <em>active</em>. If yes, set it to the <em>active</em> state and start executing it. If not, the task is <em>pending</em> and add it to a list of <em>pending</em> tasks.</p>
+   <p>When a task finishes executing, it may allow other <em>pending</em> tasks to become active. We check the list of <em>pending</em> tasks and move to <em>active</em> all the possible tasks (greedy implementation).</p>
+   <p>A task can become active when all the direct <a data-link-type="dfn" href="#predecessor" id="ref-for-predecessor⑥">predecessors</a> are in the <em>completed</em> state and it is not a <a data-link-type="dfn" href="#restriction" id="ref-for-restriction⑤">restriction</a> of an already <em>active</em> task, and it doesn’t have non-binary <a data-link-type="dfn" href="#conflict" id="ref-for-conflict③">conflicts</a> with the active set.</p>
+   <p>The way this method is expressed, it may be inefficient to run these functions. We expressed it like that to have a variant for the most general form and to be easy to reason about it. There are ways to make this far more efficient, but these are dependent on the problem domain. We will show some examples later.</p>
+   <h3 class="heading settled" data-level="4.3" id="conc-tasks-properties"><span class="secno">4.3. </span><span class="content">Properties of the general scheduling method</span><a class="self-link" href="#conc-tasks-properties"></a></h3>
+   <p>In the discussion that follows we assume that the relations between the tasks are properly constructed. If one task creates another task, we assume there is a <a data-link-type="dfn" href="#successor" id="ref-for-successor⑤">successor</a>/<a data-link-type="dfn" href="#predecessor" id="ref-for-predecessor⑦">predecessor</a> relation between them. We also assume that all the predecessors are created before their successors. We also assume that there are no circular dependencies. Also, each task must be part of a least one set from $parSets(T)$.</p>
+   <hr>
+   <p><dfn class="dfn-paneled" data-dfn-type="dfn" data-noexport id="lemma-1-completeness">Lemma 1 (completeness)</dfn>. If a concurrent program has a finite set of <a data-link-type="dfn" href="#task" id="ref-for-task⑧">tasks</a> then the general scheduling method will eventually complete executing all the tasks.</p>
+   <p>All tasks that are marked as <em>active</em> will start executing and will eventually complete.</p>
+   <p>Any concurrent program must start with at least one <em>active</em> task.</p>
+   <p>All the tasks of the program, when created, are marked either <em>active</em> or <em>pending</em>.</p>
+   <p>If we prove that all the <em>pending</em> tasks will eventually become <em>active</em>, then our method will execute all the tasks and eventually complete them.</p>
+   <p>A task $t$ is marked as <em>pending</em> because at the point of creation we had:</p>
+   <ol>
+    <li data-md>
+     <p>either a direct <a data-link-type="dfn" href="#predecessor" id="ref-for-predecessor⑧">predecessor</a> that is not complete; $t \leftarrow t_0$, where $t_0$ is either <em>active</em> or <em>pending</em></p>
+    <li data-md>
+     <p>either it has a <a data-link-type="dfn" href="#restriction" id="ref-for-restriction⑥">restriction</a> relation to one of the active tasks; $t \sim t_0$, where $t_0$ is active</p>
+    <li data-md>
+     <p>either $conflicts(t, A)$, where $A$ is the current set of active tasks</p>
+   </ol>
+   <p>When a task is marked as <em>completed</em>, we check if any of the <em>pending</em> tasks can be marked as <em>active</em>. If we converting <em>pending</em> tasks to <em>active</em> we are making progress towards our goal. But, it may happen that after completing tasks we cannot convert any <em>pending</em> tasks to be <em>active</em>. We have to prove that eventually this will not happen and we manage to convert <em>pending</em> tasks to <em>active</em>.</p>
+   <p>If the conversion doesn’t happen, then the set of <em>active</em> tasks will decrease each time a task is finished executing. If no new <em>active</em> tasks are added, then eventually the set of <em>active</em> tasks will become empty.</p>
+   <p>If there is no <em>active</em> task, then it’s clear the conditions 2. and 3. cannot prevent a task $t$ from moving from <em>pending</em> to <em>active</em>. Let’s also show that neither condition 1. doesn’t prevent converting a <em>pending</em> task to <em>active</em>. If the set of <em>active</em> tasks is empty, it means that all the predecessors discussed in rule 1. must be <em>pending</em>. Because the <a data-link-type="dfn" href="#predecessor" id="ref-for-predecessor⑨">predecessor</a> relation is not reflexive and is not circular, it means that eventually we can find a <em>pending</em> task that doesn’t have its direct predecessors in the set of <em>pending</em> tasks; as the set of <em>active</em> tasks is empty, it means that all the direct predecessors are in the <em>complete</em> state. Thus, that task cannot be prevented by any predecessor to become <em>active</em>.</p>
+   <p>Thus, we found at least one task that can transition from <em>pending</em> to <em>active</em>.</p>
+   <p>If we are making progress and converting <em>pending</em> tasks to <em>active</em> tasks, then we eventually convert all the <em>pending</em> tasks to <em>active</em>. And, as all the <em>active</em> tasks will complete eventually, all the tasks in our program will eventually complete.</p>
+   <p>Q.E.D.</p>
+   <hr>
+   <p><dfn class="dfn-paneled" data-dfn-type="dfn" data-noexport id="lemma-2-soundness">Lemma 2 (soundness)</dfn>. If the task relations are properly set, then the general scheduling method will not allow running in parallel tasks that can have race conditions.</p>
+   <p>Having the task relations properly set means that each time we can have race conditions between a set of tasks, we must have defined <a data-link-type="dfn" href="#conflict" id="ref-for-conflict④">conflicts</a> between these tasks. As <a data-link-type="dfn" href="#task" id="ref-for-task⑨">tasks</a> are <a data-link-type="dfn" href="#unit-of-work" id="ref-for-unit-of-work③">units of work</a>, which don’t make sense to be divided anymore, we can’t have a situation in which parts of the tasks are in <a data-link-type="dfn" href="#conflict" id="ref-for-conflict⑤">conflict</a> with other parts of other tasks; if that would have been the case, then the tasks would not be units of work.</p>
+   <p>By the construction of our general method, we can only run in parallel tasks that are at the same time in the <em>active</em> state. Also, by the construction of the method (see the mutex) we move tasks to the <em>active</em> state one at a time. The only way in which this lemma can be false is if, given a set of <em>active</em> tasks, we make <em>active</em> a new task that has <a data-link-type="dfn" href="#conflict" id="ref-for-conflict⑥">conflicts</a> with the existing set of <em>active</em> tasks. But, before we transition a task to <em>active</em> state, we check if it can have <a data-link-type="dfn" href="#conflict" id="ref-for-conflict⑦">conflicts</a> with the already <em>active</em> tasks. As this is an atomic operation, we are guaranteed that there are no <a data-link-type="dfn" href="#conflict" id="ref-for-conflict⑧">conflicts</a> between the newly added task and the existing list of active tasks.</p>
+   <p>As it is impossible to have conflicting tasks being <em>active</em> at the same time, we cannot have parallel tasks that generate race conditions.</p>
+   <p>Q.E.D.</p>
+   <hr>
+   <p><dfn class="dfn-paneled" data-dfn-type="dfn" data-noexport id="lemma-3-efficiency">Lemma 3 (efficiency)</dfn>. On a machine with almost infinite parallelism, using the greedy assumption, at any time during the execution of the tasks (ignoring the time we are actually spending in the scheduling of the tasks) we cannot add any more task to be executed while maintaining soundness.</p>
+   <p>By greedy assumption, we mean that adding a task to be executed as soon as possible is a good choice. We cannot know what tasks would soon be available for execution, so, trying to hold back tasks is not necessarily a good strategy. Using the greedy assumption typically leads to good efficiency, but it is not guaranteed to have the maximum efficiency.</p>
+   <p>Let us take the set $A$ to mean all the tasks active at a given point. By convention, we don’t want to consider the time spent scheduling, so we only care about moments in which any of the threads are not executing <code class="highlight"><c- n>safe_executor</c-><c- o>::</c-><c- n>execute</c-><c- p>()</c-></code> nor <code class="highlight"><c- n>safe_executor</c-><c- o>::</c-><c- n>on_task_completed</c-><c- p>()</c-></code>.</p>
+   <p>Let’s assume that at that we can execute one more task $t$ to increase efficiency. That is, the task was in <em>pending</em> state and can move it to <em>active</em> state (by our definition of task states). To maintain soundness, we should not have a <a data-link-type="dfn" href="#conflict" id="ref-for-conflict⑨">conflict</a> between $t$ and $A$. That is, calling <code class="highlight"><c- n>can_be_active</c-><c- p>(</c-><c- n>t</c-><c- p>)</c-></code> should return <code class="highlight">true</code> at that instant. As the task $t$ is currently not in <em>active</em> state it means that <code class="highlight"><c- n>can_be_active</c-><c- p>(</c-><c- n>t</c-><c- p>)</c-></code> returned <code class="highlight">false</code> last time it was called.</p>
+   <p>The last time that <code class="highlight"><c- n>can_be_active</c-><c- p>(</c-><c- n>t</c-><c- p>)</c-></code> was called was when the task was created or when another task was completed. At that point, this function call returned <code class="highlight">false</code>, as the task is still in <em>pending</em> state. Let’s note by $A_0$ the set of <em>active</em> tasks at this point.</p>
+   <p>From that point until the point in which this task can be <em>active</em> we can have other tasks created. In that case, the set of <em>active</em> tasks can only be increased ($A_0 \subset A$). But if task $t$ was not safe to run in parallel with the tasks in $A_0$, then they cannot be safe running in parallel with the same tasks and some other new tasks.</p>
+   <p>Thus, there is no way that we can execute additional tasks without compromising safety.</p>
+   <p>Q.E.D.</p>
+   <hr>
+   <p><dfn class="dfn-paneled" data-dfn-type="dfn" data-noexport id="theorem-1-general-solution-for-scheduling-tasks">Theorem 1 (general solution for scheduling tasks)</dfn>. There is a general method of scheduling <a data-link-type="dfn" href="#task" id="ref-for-task①⓪">tasks</a> that works with all concurrent problems, that is safe (without the need of additional blocking synchronization), and is as efficient as it can be (under the greedy assumption).</p>
+   <p>The proof follows immediately from the above lemmas.</p>
+   <p>Q.E.D.</p>
+   <h3 class="heading settled" data-level="4.4" id="conc-tasks-specialized"><span class="secno">4.4. </span><span class="content">Specialized schedulers</span><a class="self-link" href="#conc-tasks-specialized"></a></h3>
+   <p>The general scheduling method is a global solution, but it may be too heavy for some applications. And, depending on the type of application, we might find more efficient scheduling methods. We describe here several specialized scheduling methods for such purpose.</p>
+   <p>First, let us note that most of the applications don’t have <a data-link-type="dfn" href="#conflict" id="ref-for-conflict①⓪">conflicts</a> between all types of tasks; we can typically partition the space of conflicts. Taking mutexes as an example, in most applications we don’t have just one mutex for everything, but we have multiple mutexes; that is, we partition the space of possible conflicts. Having localized conflicts allows us to independently manage the conflicts that can appear between groups of tasks. We can use different scheduling methods in different parts of the problem.</p>
+   <p>We will now briefly consider several types of schedulers inspired by existing practice.</p>
+   <h4 class="heading settled" data-level="4.4.1" id="conc-tasks-specialized-ser"><span class="secno">4.4.1. </span><span class="content">Mutexes can be modeled with serializers</span><a class="self-link" href="#conc-tasks-specialized-ser"></a></h4>
+   <p>A mutex ensures that multiple regions of code cannot be run in parallel; a maximum of one of the marked regions can run in parallel. If we turn this into tasks, we have certain tasks that have <a data-link-type="dfn" href="#restriction" id="ref-for-restriction⑦">restrictions</a> between them. If $ST$ is a set of tasks that need to be mutually exclusive, then we should add restrictions between all the tasks of this set: $t_1 \sim t_2, \forall t_1, t_2 \in ST$.</p>
+   <p>This can be modeled in the following way (pseudo-code):</p>
+<pre class="language-C++ highlight"><c- k>struct</c-> <c- nc>serializer</c-> <c- p>{</c->
+    <c- b>void</c-> <c- nf>execute</c-><c- p>(</c-><c- n>task</c-> <c- n>t</c-><c- p>)</c-> <c- p>{</c->
+        <c- n>atomically</c-><c- o>-</c-><c- k>do</c-> <c- p>{</c->
+            <c- k>if</c-> <c- p>(</c-> <c- o>!</c-><c- n>executing_</c-> <c- p>)</c->
+                <c- n>start_executing</c-><c- p>(</c-><c- n>t</c-><c- p>,</c-> <c- o>&amp;</c-><c- n>on_task_completed</c-><c- p>);</c->
+            <c- k>else</c->
+                <c- n>queued_tasks_</c-><c- p>.</c-><c- n>push</c-><c- p>(</c-><c- n>t</c-><c- p>);</c->
+            <c- n>executing_</c-> <c- o>=</c-> true<c- p>;</c->
+        <c- p>}</c->
+    <c- p>}</c->
+
+<c- nl>private</c-><c- p>:</c->
+    <c- b>void</c-> <c- n>on_task_completed</c-><c- p>(</c-><c- n>task</c-> <c- n>t</c-><c- p>)</c-> <c- p>{</c->
+        <c- n>atomically</c-><c- o>-</c-><c- k>do</c-> <c- p>{</c->
+            <c- n>task</c-> <c- n>next</c-><c- p>;</c->
+            <c- k>if</c-> <c- p>(</c-> <c- n>queued_tasks_</c-><c- p>.</c-><c- n>try_pop</c-><c- p>(</c-><c- n>next</c-><c- p>)</c-> <c- p>)</c->
+                <c- n>start_executing</c-><c- p>(</c-><c- n>next</c-><c- p>,</c-> <c- o>&amp;</c-><c- n>on_task_completed</c-><c- p>);</c->
+            <c- k>else</c->
+                <c- n>executing_</c-> <c- o>=</c-> false<c- p>;</c->
+        <c- p>}</c->
+    <c- p>}</c->
+
+    <c- n>concurrent_queue</c-><c- o>&lt;</c-><c- n>task</c-><c- o>></c-> <c- n>queued_tasks_</c-><c- p>;</c->
+    <c- b>bool</c-> <c- n>executing_</c-><c- p>{</c->false<c- p>};</c->
+<c- p>};</c->
+</pre>
+   <p>A real implementation for this would arrange slightly different the data structure to ensure that the operations present can be executed atomically. The important point here is that the implementation is not necessarily complicated and without significant loss of performance.</p>
+   <p>Using these abstractions instead of mutexes can benefit concurrent applications, both in terms of safety and in terms of performance. If we have plenty of other tasks in the system, the performance of the application doesn’t drop when using serializers; we are not blocking any threads from executing work.</p>
+   <h4 class="heading settled" data-level="4.4.2" id="conc-tasks-specialized-nser"><span class="secno">4.4.2. </span><span class="content">Semaphores can be modeled with n-serializers</span><a class="self-link" href="#conc-tasks-specialized-nser"></a></h4>
+   <p>Semaphores can be thought of as extensions to mutexes, in the sense that they bound the number of threads executing a protected region to a number greater than one.</p>
+   <p>Similar to the serializer abstraction, we can introduce an n-serializer abstraction that allows maximum <em>N</em> tasks to be executed at once.</p>
+   <p>If $ST$ is the set of tasks for which we can execute in parallel maximum <em>N</em>, then we can define <a data-link-type="dfn" href="#conflict" id="ref-for-conflict①①">conflicts</a> between sets of tasks. $conflict(t, A) = true$ if the size of the set $A$ is greater or equal to <em>N</em>.</p>
+   <p>The reader should note that these types of <a data-link-type="dfn" href="#conflict" id="ref-for-conflict①②">conflicts</a> cannot be represented only with binary relations. Binary relations can be used for representing the conflicts in a lot of cases, but this is a great example of their limitations.</p>
+   <p>Below there is a pseudo-code for a possible implementation:</p>
+<pre class="language-C++ highlight"><c- k>struct</c-> <c- nc>n_serializer</c-> <c- p>{</c->
+    <c- n>n_serializer</c-><c- p>(</c-><c- b>int</c-> <c- n>max_count</c-><c- p>)</c-> <c- o>:</c-> <c- n>max_count_</c-><c- p>{</c-><c- n>max_count</c-><c- p>}</c-> <c- p>{}</c->
+
+    <c- b>void</c-> <c- n>execute</c-><c- p>(</c-><c- n>task</c-> <c- n>t</c-><c- p>)</c-> <c- p>{</c->
+        <c- n>atomically</c-><c- o>-</c-><c- k>do</c-> <c- p>{</c->
+            <c- k>if</c-> <c- p>(</c-> <c- n>num_executing_</c-> <c- o>&lt;</c-> <c- n>max_count_</c-> <c- p>)</c-> <c- p>{</c->
+                <c- n>start_executing</c-><c- p>(</c-><c- n>t</c-><c- p>,</c-> <c- o>&amp;</c-><c- n>on_task_completed</c-><c- p>);</c->
+                <c- n>num_executing_</c-><c- o>++</c-><c- p>;</c->
+            <c- p>}</c->
+            <c- k>else</c->
+                <c- n>queued_tasks_</c-><c- p>.</c-><c- n>push</c-><c- p>(</c-><c- n>t</c-><c- p>);</c->
+        <c- p>}</c->
+    <c- p>}</c->
+
+<c- nl>private</c-><c- p>:</c->
+    <c- b>void</c-> <c- n>on_task_completed</c-><c- p>(</c-><c- n>task</c-> <c- n>t</c-><c- p>)</c-> <c- p>{</c->
+        <c- n>atomically</c-><c- o>-</c-><c- k>do</c-> <c- p>{</c->
+            <c- n>task</c-> <c- n>next</c-><c- p>;</c->
+            <c- k>if</c-> <c- p>(</c-> <c- n>queued_tasks_</c-><c- p>.</c-><c- n>try_pop</c-><c- p>(</c-><c- n>next</c-><c- p>)</c-> <c- p>)</c->
+                <c- n>start_executing</c-><c- p>(</c-><c- n>next</c-><c- p>,</c-> <c- o>&amp;</c-><c- n>on_task_completed</c-><c- p>);</c->
+            <c- k>else</c->
+                <c- n>num_executing_</c-><c- o>--</c-><c- p>;</c->
+        <c- p>}</c->
+    <c- p>}</c->
+
+    <c- b>int</c-> <c- n>max_count_</c-><c- p>;</c->
+    <c- n>concurrent_queue</c-><c- o>&lt;</c-><c- n>task</c-><c- o>></c-> <c- n>queued_tasks_</c-><c- p>;</c->
+    <c- b>int</c-> <c- n>num_executing_</c-><c- p>{</c-><c- mi>0</c-><c- p>};</c->
+<c- p>};</c->
+</pre>
+   <h4 class="heading settled" data-level="4.4.3" id="conc-tasks-specialized-rwser"><span class="secno">4.4.3. </span><span class="content">Read-write mutexes can be modeled with rw-serializers</span><a class="self-link" href="#conc-tasks-specialized-rwser"></a></h4>
+   <p>A read-write mutex has two types of zones: <em>read</em> zones and <em>write</em> zones. Multiple <em>read</em> zones can be executed in parallel with each other, but one cannot execute multiple <em>write</em> zones in parallel, and cannot execute a <em>write</em> zone in parallel with a <em>read</em> zone.</p>
+   <p>We can also translate this idea into the world of tasks. If $R$ is a set of <em>read</em> tasks and $W$ a set of <em>write</em> tasks, then we add the following <a data-link-type="dfn" href="#restriction" id="ref-for-restriction⑧">restrictions</a>: $t_w \sim t_r, \forall t_w \in W, t_r \in R$, and $t_{w1} \sim t_{w2}, \forall t_{w1}, t_{w2} \in W$. We don’t need to add any restrictions between <em>read</em> tasks.</p>
+   <p>A possible pseudo-code implementation for such a rw-serializer is given below:</p>
+<pre class="language-C++ highlight"><c- k>struct</c-> <c- nc>rw_serializer</c-> <c- p>{</c->
+    <c- b>void</c-> <c- nf>execute_read</c-><c- p>(</c-><c- n>task</c-> <c- n>t</c-><c- p>)</c-> <c- p>{</c->
+        <c- n>atomically</c-><c- o>-</c-><c- k>do</c-> <c- p>{</c->
+            <c- k>if</c-> <c- p>(</c-> <c- o>!</c-><c- n>executing_write_</c-> <c- o>&amp;&amp;</c-> <c- n>queued_write_tasks_</c-><c- p>.</c-><c- n>empty</c-><c- p>()</c-> <c- p>)</c-> <c- p>{</c->
+                <c- c1>// execute the task if we are not executing write and we don’t have any write tasks in the queue</c->
+                <c- n>start_executing</c-><c- p>(</c-><c- n>t</c-><c- p>,</c-> <c- o>&amp;</c-><c- n>on_task_completed_r</c-><c- p>);</c->
+                <c- n>num_executing_read_</c-><c- o>++</c-><c- p>;</c->
+            <c- p>}</c->
+            <c- k>else</c->
+                <c- n>queued_read_tasks_</c-><c- p>.</c-><c- n>push</c-><c- p>(</c-><c- n>t</c-><c- p>);</c->
+        <c- p>}</c->
+    <c- p>}</c->
+
+    <c- b>void</c-> <c- nf>execute_write</c-><c- p>(</c-><c- n>task</c-> <c- n>t</c-><c- p>)</c-> <c- p>{</c->
+        <c- n>atomically</c-><c- o>-</c-><c- k>do</c-> <c- p>{</c->
+            <c- k>if</c-> <c- p>(</c-> <c- o>!</c-><c- n>executing_write_</c-> <c- o>&amp;&amp;</c-> <c- o>!</c-><c- n>executing_read_</c-> <c- p>)</c-> <c- p>{</c->
+                <c- c1>// execute the task if we are not executing anything else</c->
+                <c- n>start_executing</c-><c- p>(</c-><c- n>t</c-><c- p>,</c-> <c- o>&amp;</c-><c- n>on_task_completed_w</c-><c- p>);</c->
+                <c- n>executing_write_</c-> <c- o>=</c-> true<c- p>;</c->
+            <c- p>}</c->
+            <c- k>else</c->
+                <c- n>queued_write_tasks_</c-><c- p>.</c-><c- n>push</c-><c- p>(</c-><c- n>t</c-><c- p>);</c->
+        <c- p>}</c->
+    <c- p>}</c->
+
+<c- nl>private</c-><c- p>:</c->
+    <c- b>void</c-> <c- n>on_task_completed_r</c-><c- p>(</c-><c- n>task</c-> <c- n>t</c-><c- p>)</c-> <c- p>{</c->
+        <c- n>atomically</c-><c- o>-</c-><c- k>do</c-> <c- p>{</c->
+            <c- n>num_executing_read_</c-><c- o>--</c-><c- p>;</c->
+            <c- n>start_next</c-><c- p>();</c->
+        <c- p>}</c->
+    <c- p>}</c->
+    <c- b>void</c-> <c- n>on_task_completed_w</c-><c- p>(</c-><c- n>task</c-> <c- n>t</c-><c- p>)</c-> <c- p>{</c->
+        <c- n>atomically</c-><c- o>-</c-><c- k>do</c-> <c- p>{</c->
+            <c- n>executing_write_</c-> <c- o>=</c-> false<c- p>;</c->
+            <c- n>start_next</c-><c- p>();</c->
+        <c- p>}</c->
+    <c- p>}</c->
+    <c- b>void</c-> <c- n>start_next</c-><c- p>()</c-> <c- p>{</c->
+        <c- n>task</c-> <c- n>next</c-><c- p>;</c->
+        <c- k>if</c-> <c- p>(</c-> <c- n>num_executing_read_</c-> <c- o>==</c-> <c- mi>0</c-> <c- o>&amp;&amp;</c-> <c- n>queued_write_tasks_</c-><c- p>.</c-><c- n>try_pop</c-><c- p>(</c-><c- n>next</c-><c- p>)</c-> <c- p>)</c-> <c- p>{</c->
+            <c- c1>// If no readers are executing, try execute a write task</c->
+            <c- n>start_executing</c-><c- p>(</c-><c- n>next</c-><c- p>,</c-> <c- o>&amp;</c-><c- n>on_task_completed_w</c-><c- p>);</c->
+            <c- n>executing_write_</c-> <c- o>=</c-> true<c- p>;</c->
+        <c- p>}</c->
+        <c- k>else</c-> <c- k>if</c-> <c- p>(</c-> <c- n>queued_write_tasks_</c-><c- p>.</c-><c- n>empty</c-><c- p>()</c-> <c- o>&amp;&amp;</c-> <c- n>queued_read_tasks_</c-><c- p>.</c-><c- n>try_pop</c-><c- p>(</c-><c- n>next</c-><c- p>)</c-> <c- p>)</c-> <c- p>{</c->
+            <c- c1>// If no writers are queue, try execute a read task</c->
+            <c- n>start_executing</c-><c- p>(</c-><c- n>next</c-><c- p>,</c-> <c- o>&amp;</c-><c- n>on_task_completed_r</c-><c- p>);</c->
+            <c- n>num_executing_read_</c-><c- o>++</c-><c- p>;</c->
+        <c- p>}</c->
+    <c- p>}</c->
+
+    <c- n>concurrent_queue</c-><c- o>&lt;</c-><c- n>task</c-><c- o>></c-> <c- n>queued_read_tasks_</c-><c- p>;</c->
+    <c- n>concurrent_queue</c-><c- o>&lt;</c-><c- n>task</c-><c- o>></c-> <c- n>queued_write_tasks_</c-><c- p>;</c->
+    <c- b>int</c-> <c- n>num_executing_read_</c-><c- p>{</c-><c- mi>0</c-><c- p>};</c->
+    <c- b>bool</c-> <c- n>executing_write_</c-><c- p>{</c->false<c- p>};</c->
+<c- p>};</c->
+</pre>
+   <p>There are multiple ways to implement read-write mutexes (favoring <em>writes</em>, favoring <em>reads</em>, maintaining fairness, etc.). Similarly, there are multiple ways in which one can implement a rw-serializer. The point is that we can translate all these mutex-based structures into abstractions that operate on tasks and <a data-link-type="dfn" href="#restriction" id="ref-for-restriction⑨">restrictions</a>/<a data-link-type="dfn" href="#conflict" id="ref-for-conflict①③">conflicts</a> between them.</p>
+   <h4 class="heading settled" data-level="4.4.4" id="conc-tasks-specialized-beyond"><span class="secno">4.4.4. </span><span class="content">Beyond serializers</span><a class="self-link" href="#conc-tasks-specialized-beyond"></a></h4>
+   <p>The point of showing these specialized schedulers was to show that the synchronization methods that we have in our legacy programs can translate to abstractions that operate on tasks. Serializers aren’t the only structures that can be created to ensure safety in concurrent applications. And all these can be implemented in an efficient matter, both in terms of maximizing the throughput of executing tasks and minimizing the time one needs to spend in scheduling tasks.</p>
+   <p>For example, one can easily create structures for executing graphs of tasks. For a particular task, one needs to keep track of the count of direct <a data-link-type="dfn" href="#predecessor" id="ref-for-predecessor①⓪">predecessors</a> and the list of direct <a data-link-type="dfn" href="#successor" id="ref-for-successor⑥">successors</a> of tasks. Once all these tasks are complete (the predecessor count decreases to zero), the task can be executed. When a task completes it can decrement the counter for all its direct successors; if one successor reaches with count zero, it starts the successor task.</p>
+   <p>Another example of a common concurrent structure that one might implement is a <em>pipeline</em>. The users can define a set of stages of processing that need to be executed sequentially, and the desired parallelism for each stage, and then push data through the pipeline. When using a pipeline abstraction, the user will typically define the stages of processing not as tasks, but as <em>factories of tasks</em>. While the processing stage remains the same, there will be multiple tasks created as multiple items flow through the pipeline.</p>
+   <p>Related to pipelines, a general approach to concurrency would be reactive programming. There we have <em>streams</em> of items flowing through different processing units (filters, joins, splits, etc.). Again, the concurrency is expressed in terms of the processing units, which need to be factories of tasks, not tasks <em>per se</em>. Tasks can be used in the underlying implementation of the reactive framework.</p>
+   <p>All these come to strengthen the idea that we can build concurrent programs on top of tasks. Moreover, we can build concurrency abstractions based on the few properties that tasks have.</p>
+   <h2 class="heading settled" data-level="5" id="computations"><span class="secno">5. </span><span class="content">Concurrency with computations</span><a class="self-link" href="#computations"></a></h2>
+   <p>Now that we discussed how we can build concurrent programs using <a data-link-type="dfn" href="#task" id="ref-for-task①①">tasks</a>, we can finally move to <a data-link-type="dfn" href="#computation" id="ref-for-computation②">computations</a> and extend the results we’ve obtained with tasks</p>
+   <h3 class="heading settled" data-level="5.1" id="computations-applicability"><span class="secno">5.1. </span><span class="content">General applicability of computations</span><a class="self-link" href="#computations-applicability"></a></h3>
+   <p><dfn class="dfn-paneled" data-dfn-type="dfn" data-noexport id="theorem-2-general-applicability-of-computations">Theorem 2 (general applicability of computations)</dfn>. All concurrent programs can be expressed with <a data-link-type="dfn" href="#computation" id="ref-for-computation③">computations</a> in a safe manner, without requiring blocking synchronization and with high efficiency for computation execution (under the greedy assumption).</p>
+   <p>Based on the discussion in <a href="#conventions-tasks">§ 3.2 Tasks and computations</a>, every concurrent program or part of a program that we express with tasks can also be expressed with computations. If we put this together with <a data-link-type="dfn" href="#theorem-1-general-solution-for-scheduling-tasks" id="ref-for-theorem-1-general-solution-for-scheduling-tasks">Theorem 1 (general solution for scheduling tasks)</a>, we arrive at the conclusion of this theorem.</p>
+   <p>Q.E.D.</p>
+   <p>In other words, <a data-link-type="dfn" href="#computation" id="ref-for-computation④">computations</a> can be used to solve any concurrent problem.</p>
+   <h3 class="heading settled" data-level="5.2" id="computations-high"><span class="secno">5.2. </span><span class="content">High-level concurrency</span><a class="self-link" href="#computations-high"></a></h3>
+   <p>So far we discussed <a data-link-type="dfn" href="#unit-of-work" id="ref-for-unit-of-work④">units of work</a>. The question that we are trying to answer in this section is whether one can use computations to express larger chunks of <a data-link-type="dfn" href="#work" id="ref-for-work③">work</a>. Allowing users to operate on larger chunks of work, will raise the abstraction level that users can operate while dealing with concurrency. The end goal is to allow users to express concurrency at all abstraction levels: from high-level to low-level.</p>
+   <hr>
+   <p><dfn data-dfn-type="dfn" data-noexport id="lemma-4-async-completion">Lemma 4 (async completion)<a class="self-link" href="#lemma-4-async-completion"></a></dfn>. All the properties of the general scheduling method and all its implications are still true if the completion notification for a task is sent on a different thread than the thread that actually executes the task.</p>
+   <p>Analyzing the general scheduling method described in <a href="#conc-tasks-algo">§ 4.2 A general scheduling method</a> there isn’t any single condition that is placed by the completion notification (<code class="highlight"><c- n>safe_executor</c-><c- o>::</c-><c- n>on_task_completed</c-><c- p>()</c-></code>). The method still works regardless of the thread that sends the completion notification. Changing the thread onto which the notifications are made, doesn’t affect the validity of <a data-link-type="dfn" href="#theorem-1-general-solution-for-scheduling-tasks" id="ref-for-theorem-1-general-solution-for-scheduling-tasks①">Theorem 1 (general solution for scheduling tasks)</a> and thus of <a data-link-type="dfn" href="#theorem-2-general-applicability-of-computations" id="ref-for-theorem-2-general-applicability-of-computations">Theorem 2 (general applicability of computations)</a>.</p>
+   <p>Q.E.D.</p>
+   <p>This lemma proves that we can use <a data-link-type="dfn" href="#multi-unit-computation" id="ref-for-multi-unit-computation">multi-unit computations</a> instead of <a data-link-type="dfn" href="#unit-computation" id="ref-for-unit-computation">unit computations</a> (or <a data-link-type="dfn" href="#task" id="ref-for-task①②">tasks</a>), and we can still guarantee the completeness of the program.</p>
+   <hr>
+   <p><dfn data-dfn-type="dfn" data-noexport id="lemma-5-delayed-completion">Lemma 5 (delayed completion)<a class="self-link" href="#lemma-5-delayed-completion"></a></dfn>. If a task completion notification is delayed, as long as it will eventually be called, Lemma 1 (completeness) and <a data-link-type="dfn" href="#lemma-2-soundness" id="ref-for-lemma-2-soundness">Lemma 2 (soundness)</a> are still valid.</p>
+   <p>Both <a data-link-type="dfn" href="#lemma-1-completeness" id="ref-for-lemma-1-completeness">Lemma 1 (completeness)</a> and <a data-link-type="dfn" href="#lemma-2-soundness" id="ref-for-lemma-2-soundness①">Lemma 2 (soundness)</a> do not consider the duration of the tasks and the timing of the completion notification. They just rely on the fact that the completion notification is eventually invoked. Thus, their results are still true if the completion signal is delayed.</p>
+   <p>Q.E.D.</p>
+   <hr>
+   <p><dfn class="dfn-paneled" data-dfn-type="dfn" data-noexport id="lemma-6-efficiency-with-computations">Lemma 6 (efficiency with computations)</dfn>. Treating computations as atomic entities that we don’t want to subdivide, then the general method of execution will ensure the maximum amount of computations can be run in parallel at any time (except time spent in scheduling), under the greedy assumption.</p>
+   <p>We won’t give the full proof here; it follows the same steps as <a data-link-type="dfn" href="#lemma-3-efficiency" id="ref-for-lemma-3-efficiency">Lemma 3 (efficiency)</a> but essentially replacing tasks with computations.</p>
+   <p>Q.E.D.</p>
+   <p>With this lemma, we assume that similar to the general method presented in <a href="#conc-tasks-algo">§ 4.2 A general scheduling method</a> there is one that looks the same but has computations as the main abstractions that it operates on. As stating the full method here would require a lot of duplication, we assume that what we presented for tasks can easily be used for computations.</p>
+   <hr>
+   <p><dfn data-dfn-type="dfn" data-noexport id="theorem-3-general-solution-with-computations">Theorem 3 (general solution with computations)<a class="self-link" href="#theorem-3-general-solution-with-computations"></a></dfn>. There is a general method of scheduling computations that works with all concurrent problems, that is safe (without the need of additional blocking synchronization), and is as efficient as it can be (under the greedy assumption).</p>
+   <p>The proof follows immediately from the above lemmas, and from the translation of the general method for tasks into a method for arbitrarily sized computations.</p>
+   <p>Q.E.D.</p>
+   <h3 class="heading settled" data-level="5.3" id="computations-composability"><span class="secno">5.3. </span><span class="content">Composability and decomposability</span><a class="self-link" href="#computations-composability"></a></h3>
+   <p>Computations have the nice property of being highly composable. Even the smallest examples with computation invoke some kind of composition. All the sender adaptor algorithms take as arguments at least one sender object (<em>computation</em> as we named it). The resulting senders are senders that contain other senders.</p>
+   <p>This indicates that one can build complex computations out of simpler computations. Let us analyze the extent of this.</p>
+   <hr>
+   <p><dfn class="dfn-paneled" data-dfn-type="dfn" data-noexport id="lemma-7-composition">Lemma 7 (composition)</dfn>. If a program (or sub-program) $P$ can be expressed in terms of smaller-sized computations $c_1$, ..., $c_n$, then the whole $P$ can be expressed as a computation.</p>
+   <p>The program can have one or multiple exit points (i.e., it terminates with one or multiple receivers). If the program has multiple exit points, we can reduce that to one exit point by applying a <em>join</em> operation; this can be implemented by adding an <code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>when_all</c-><c- p>()</c-></code>. After adding this extra reduction, the program $P$ can signal its completion through only one receiver.</p>
+   <p>As we proved above, we can apply the general scheduling method (on computations) to ensure that the computations $c_1$, ..., $c_n$ (plus, if needed, the extra reduction) are properly run (safely and efficiently). As this method can be started when the first computation is started, and it ends with a channel that can be a receiver, we can encode the whole thing as a computation.</p>
+   <p>Q.E.D.</p>
+   <p>Please note that in practice we don’t have to use the general method; for most of the programs we can use simpler constructs to represent relations between the computations. For example, one can use <code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>let_value</c-><c- p>()</c-></code> for sequential composition and <code class="highlight"><c- n>split</c-><c- p>()</c-></code> for forking and <code class="highlight"><c- n>when_all</c-><c- p>()</c-></code> for joining various computations.</p>
+   <hr>
+   <p><dfn data-dfn-type="dfn" data-noexport id="lemma-8-whole-program-as-computation">Lemma 8 (whole program as computation)<a class="self-link" href="#lemma-8-whole-program-as-computation"></a></dfn>. Any concurrent program can be represented by one computation.</p>
+   <p><a data-link-type="dfn" href="#theorem-2-general-applicability-of-computations" id="ref-for-theorem-2-general-applicability-of-computations①">Theorem 2 (general applicability of computations)</a> tells us that any program can be represented using computations. Plugging this into <a data-link-type="dfn" href="#lemma-7-composition" id="ref-for-lemma-7-composition">Lemma 7 (composition)</a> we reach the conclusion that any program can be represented as one computation.</p>
+   <p>Q.E.D.</p>
+   <hr>
+   <p><dfn data-dfn-type="dfn" data-noexport id="lemma-9-program-parts-as-computations">Lemma 9 (program parts as computations)<a class="self-link" href="#lemma-9-program-parts-as-computations"></a></dfn>. If one can divide a concurrent program into parts in such a way that no <a data-link-type="dfn" href="#task" id="ref-for-task①③">task</a> belongs to more than one such part, then any of these parts can be represented as computations.</p>
+   <p>In the condition of the lemma we assumed that parts are greater than tasks. This is to ensure that the global scheduling algorithm is properly defined. Once we have this out of our way, then however the part is defined, as it can only consist of one or multiple tasks, one can represent it in terms of one or more computations. This means that the part itself can be represented as a computation (<a data-link-type="dfn" href="#lemma-7-composition" id="ref-for-lemma-7-composition①">Lemma 7 (composition)</a>).</p>
+   <p>Q.E.D.</p>
+   <p>Please note that the relationship between tasks can be lost for arbitrary partitions of the programs into parts. We will have an example later from which one can see that trying to keep certain relations between tasks forces us to make the divisions in certain ways.</p>
+   <hr>
+   <p><dfn class="dfn-paneled" data-dfn-type="dfn" data-noexport id="theorem-4-general-top-down-decomposition">Theorem 4 (general top-down decomposition)</dfn>. Any concurrent program can be modeled as a <a data-link-type="dfn" href="#computation" id="ref-for-computation⑤">computation</a> and can be decomposed in terms of <a data-link-type="dfn" href="#computation" id="ref-for-computation⑥">computations</a>; if those computations are large enough, they can be further decomposed until reaching <a data-link-type="dfn" href="#unit-computation" id="ref-for-unit-computation①">unit computations</a>.</p>
+   <p>The proof follows immediately from the last 3 lemmas.</p>
+   <p>Q.E.D.</p>
+   <p>Similar to the above note, the reader should realize that this theorem doesn’t state that all possible decompositions of a program or sub-program are equivalent. In the vast majority of programs, there are <a data-link-type="dfn" href="#conflict" id="ref-for-conflict①④">conflicts</a> between too many different parts of the program. Dividing the program in different ways will result in a different set of <a data-link-type="dfn" href="#conflict" id="ref-for-conflict①⑤">conflicts</a> between the computations representing the groups. This means that the performance of the program can vary depending on the way in which the split is done.</p>
+   <hr>
+   <p>Let us take an example to illustrate the applicability of <a data-link-type="dfn" href="#theorem-4-general-top-down-decomposition" id="ref-for-theorem-4-general-top-down-decomposition">Theorem 4 (general top-down decomposition)</a>. Let’s consider the program illustrated in the next figure. This program contains mostly <a data-link-type="dfn" href="#successor" id="ref-for-successor⑦">successor</a>/<a data-link-type="dfn" href="#predecessor" id="ref-for-predecessor①①">predecessor</a> relations between tasks, and one <a data-link-type="dfn" href="#restriction" id="ref-for-restriction①⓪">restriction</a> (shown in red).</p>
+   <center><img alt="Computation hierarchies" src="images/2_groups.png" width="75%"></center>
+   <p>We consider one particular grouping in this program, and we represent with dotted rectangles these groups. Each such group can be encoded as a computation. First, the whole program can be a computation. Then, we have two major computations: one that covers the upper part, and one that can handle the bottom part. Then, each of these can be sub-divided further; we stop when we reach the task level.</p>
+   <p>To maintain the safety of the program, we need to maintain the same restrictions. The reader should note that each computation has clear predecessors, and exactly one <a data-link-type="dfn" href="#successor" id="ref-for-successor⑧">successor</a>.</p>
+   <p>The reader might have noticed that we did not create too much grouping around $T_{14}$. If we add more grouping than the one shown in the picture, we need to degrade efficiency to maintain safety. For example, trying to group together $T_{11}$ and $T_{15}$ will force us to add a <a data-link-type="dfn" href="#restriction" id="ref-for-restriction①①">restriction</a> between this group and $T_{14}$ (as stated in <a data-link-type="dfn" href="#lemma-6-efficiency-with-computations" id="ref-for-lemma-6-efficiency-with-computations">Lemma 6 (efficiency with computations)</a>, we treat computation atomically). Thus, even if this new group is spending a lot of time executing $T_{11}$, we cannot execute $T_{14}$ at the same time. This leads to a loss of efficiency.</p>
+   <hr>
+   <p>This result allows us to approach concurrency in both a top-down and bottom-up fashion, allowing us to treat concurrency similarly to how we design software. That is, we can have a structured approach to building concurrent software.</p>
+   <h3 class="heading settled" data-level="5.4" id="computations-others"><span class="secno">5.4. </span><span class="content">Other considerations</span><a class="self-link" href="#computations-others"></a></h3>
+   <h4 class="heading settled" data-level="5.4.1" id="computations-others-ser"><span class="secno">5.4.1. </span><span class="content">Using specialized schedulers</span><a class="self-link" href="#computations-others-ser"></a></h4>
+   <p>In section <a href="#conc-tasks-specialized">§ 4.4 Specialized schedulers</a> we discussed how we can replace the general scheduling method with specialized schedulers to improve the efficiency of the scheduling itself. As main examples, we’ve shown serializers.</p>
+   <p>Serializers can also be made to work with computations. For example, one can enqueue a lot of computations into a (simple) serializer, and the serializer will eventually execute all the computations, one at a time.</p>
+   <p>To be able to serve computations coming from different parts of the system, the serializer will probably want to store the computations in a type-erased way. Currently <a data-link-type="biblio" href="#biblio-p2300r1">[P2300R1]</a> doesn’t offer a standard way of doing type-erasure on the computation. However, it will not be hard for the implementer of the serializer to do it.</p>
+   <p>Also, related to serializers, an interesting point to explore is the way in which the computations are started. Computations (i.e., senders), as defined by <a data-link-type="biblio" href="#biblio-p2300r1">[P2300R1]</a> most often have the starting point embedded inside them (senders are built on the sender obtained from the scheduler). If we want the computations to be executed one after another, to prevent unnecessary scheduler switches, maybe a good way is to reuse the scheduler from the previous computation. This is again something that can easily be done. The application probably needs some schedulers that try to reuse the previous scheduler, within certain bounds.</p>
+   <h4 class="heading settled" data-level="5.4.2" id="computations-others-repeatable"><span class="secno">5.4.2. </span><span class="content">Repeatable computations</span><a class="self-link" href="#computations-others-repeatable"></a></h4>
+   <p>While discussing tasks, the underlying assumption was that a <a data-link-type="dfn" href="#unit-of-work" id="ref-for-unit-of-work⑤">unit of work</a> will be mapped exactly to one <a data-link-type="dfn" href="#task" id="ref-for-task①④">task</a>. If we have two units of work in the program, that are doing exactly the same thing, then we would also have two tasks.</p>
+   <p>The same assumption was carried over to computations. If the program needed one computation, we assumed there will be a C++ <code class="highlight"><c- n>sender</c-></code> object created for it. If we execute the same work multiple times, we need to have multiple C++ objects.</p>
+   <p>This was fine for our proofs, but it is not clear how computations can be used when the same type of work needs to be executed multiple times.</p>
+   <p>Let’s take two examples: a pipeline and using reactive programming.</p>
+   <p>For pipelines, one will specify a set of <em>stages</em> that need to be sequentially applied to the items flowing through the pipeline and the concurrency constraints that apply to each of the stages. For example, we might consider a 3-stage pipeline in which the first and the last stage needs to be serialized (only one item flowing), while in the middle stage we can have multiple items being processed at the same time.</p>
+   <p>The stages of the pipeline can be expressed using computations, but again, computations cannot be reused. Thus, if $N$ items flow through a 3-stage pipeline, we need to have $3N$ actual computation objects. Thus, whenever we define the pipeline we need to define the <em>blueprints</em> of these computations, and not the computations themselves. There are multiple ways of solving this problem. As an example, one can pass computation factories to the pipeline when specifying a stage. As another example, the implementer of the pipeline can decide to use prototype computations; have one computation object that is copied each time an actual item needs to be processed.</p>
+   <p>Let us switch now to reactive programming. In this model, one can define <em>streams</em> of events, and one can add <em>filters</em>, <em>transforms</em> and other operations that take streams as inputs and generate streams as outputs. As this is a bit abstract, here is an example of how these can be coded in C++ (without an apparent use of computations):</p>
+<pre class="language-C++ highlight"><c- n>stream</c-><c- o>&lt;</c-><c- n>mouse_event</c-><c- o>></c-> <c- k>auto</c-> <c- n>all_mouse_events</c-> <c- o>=</c-> <c- p>...</c->
+<c- n>stream</c-><c- o>&lt;</c-><c- n>mouse_event</c-><c- o>></c-> <c- k>auto</c-> <c- n>mouse_moves</c-> <c- o>=</c-> <c- n>filter</c-><c- p>(</c-><c- n>all_mouse_events</c-><c- p>,</c-> <c- o>&amp;</c-><c- n>only_mouse_moves</c-><c- p>);</c->
+<c- n>stream</c-><c- o>&lt;</c-><c- n>mouse_event</c-><c- o>></c-> <c- k>auto</c-> <c- n>relative_moves</c-> <c- o>=</c-> <c- n>map</c-><c- p>(</c-><c- n>mouse_moves</c-><c- p>,</c-> <c- o>&amp;</c-><c- n>offset_to_window</c-><c- p>);</c->
+<c- n>stream</c-><c- o>&lt;</c-><c- n>draw_state</c-><c- o>></c-> <c- k>auto</c-> <c- n>drawing_states</c-> <c- o>=</c-> <c- p>...</c->
+<c- k>auto</c-> <c- n>drawing_events</c-> <c- o>=</c-> <c- n>when_any</c-><c- p>(</c-><c- n>drawing_states</c-><c- p>,</c-> <c- n>relative_moves</c-><c- p>);</c->
+<c- n>drawing_events</c-><c- p>.</c-><c- n>then</c-><c- p>(</c-><c- o>&amp;</c-><c- n>draw_on_window</c-><c- p>);</c->
+</pre>
+   <p>In this example, we passed functions to the stream algorithms, for simplicity. But we can pass computations as well. We can build reactive programming with the same technique, but for that, we need to apply the same technique of generating a lot of computations from blueprints.</p>
+   <p>Let us sketch an example for an HTTP server:</p>
+<pre class="language-C++ highlight"><c- n>stream</c-><c- o>&lt;</c-><c- n>buffer</c-><c- o>></c-> <c- k>auto</c-> <c- n>packets_stream</c-> <c- o>=</c-> <c- p>...</c->
+<c- n>sender</c-> <c- k>auto</c-> <c- n>recognize_request</c-> <c- o>=</c-> <c- p>...</c-> <c- c1>// moves computation to other thread</c->
+<c- n>stream</c-><c- o>&lt;</c-><c- n>http_request</c-><c- o>></c-> <c- n>http_requests</c-> <c- o>=</c-> <c- n>reduce</c-><c- p>(</c-><c- n>packets_stream</c-><c- p>,</c-> <c- n>recognize_request</c-><c- p>);</c->
+<c- n>sender</c-> <c- k>auto</c-> <c- n>auth_logic</c-> <c- o>=</c-> <c- p>...</c-> <c- c1>// may invoke 3rd party services</c->
+<c- n>stream</c-><c- o>&lt;</c-><c- n>http_request</c-><c- o>></c-> <c- n>authenticated_requests</c-> <c- o>=</c-> <c- n>map</c-><c- p>(</c-><c- n>http_requests</c-><c- p>,</c-> <c- n>auth_logic</c-><c- p>);</c->
+<c- n>sender</c-> <c- k>auto</c-> <c- n>request_handler</c-> <c- o>=</c-> <c- p>...</c-> <c- c1>// may use multiple threading resources</c->
+<c- n>stream</c-><c- o>&lt;</c-><c- n>http_request</c-><c- o>></c-> <c- n>handled_requests</c-> <c- o>=</c-> <c- n>map</c-><c- p>(</c-><c- n>authenticated_requests</c-><c- p>,</c-> <c- n>request_handler</c-><c- p>);</c->
+<c- n>sender</c-> <c- k>auto</c-> <c- n>send_response</c-> <c- o>=</c-> <c- p>...</c-> <c- c1>// again, switches threads</c->
+<c- n>stream</c-><c- o>&lt;</c-><c- n>http_request</c-><c- o>></c-> <c- k>auto</c-> <c- n>res</c-> <c- o>=</c-> <c- n>map</c-><c- p>(</c-><c- n>handled_requests</c-><c- p>,</c-> <c- n>send_response</c-><c- p>);</c->
+</pre>
+   <p>For simplicity, the error handling here is done in each of the phases; again this is just a sketch.</p>
+   <p>We chose this example because some steps (if not all) may switch threads, and may even wait for responses coming over network.</p>
+   <p>Coming back, the main idea of this section is that we can use computations to represent concurrent structures in which one definition of work is applied many times as different items flow through the structure.</p>
+   <h2 class="heading settled" data-level="6" id="conclusions"><span class="secno">6. </span><span class="content">Final thoughts and conclusions</span><a class="self-link" href="#conclusions"></a></h2>
+   <p>It might not have been apparent to the reader why we renamed <em>senders</em> from <a data-link-type="biblio" href="#biblio-p2300r1">[P2300R1]</a> into [<a data-link-type="dfn" href="#async-computation" id="ref-for-async-computation">async computations</a>] (shortly <em>computations</em>). Hopefully, after going through the whole paper the reader might feel that the name <em>computation</em> better describes what can be done with these entities. These entities can describe general computations, from small ones to entire applications. As implementation details, they might be sending values to receivers, but from the user’s perspective, they just describe computations. Using the term <em>sender</em> doesn’t properly describe their usage.</p>
+   <p>It’s also worth mentioning that the term <em>computation</em> applies to multiple paradigms. It can be easily used to describe imperative work, it can be well assimilated by functional programmers, it can apply to reactive programming and to all stream-based paradigms; although we haven’t talked about it, we can think of computations also in the context of the actor model.</p>
+   <p>We haven’t explicitly pursued this, but one can infer that computations can be used as a basis for concurrency in multiple programming paradigms.</p>
+   <p>We’ve shown in this paper that computations can be used as a general mechanism for solving all concurrency problems. We’ve also shown that computations can be used as a top-down mechanism to describe concurrency; thus it provides a way for doing <em>structured concurrency</em>. All these can be made without compromising safety, and ensuring the maximum efficiency (under certain assumptions and ignoring the time spent in scheduling).</p>
+   <p>Using computations and possibly some higher-level abstractions, the programmer will no longer need to add locks into the code; this has the potential of freeing the C++ world from a lot of pain induced by ad-hoc concurrency.</p>
+   <p>This may be a bold statement, but after these results, we might dare to say that <em>computations solve concurrency</em>.</p>
+   <h2 class="heading settled" data-level="7" id="recommendations"><span class="secno">7. </span><span class="content">Recommendations</span><a class="self-link" href="#recommendations"></a></h2>
+   <p>With this paper, the author makes the following recommendations for the C++ standard committee:</p>
+   <ol>
+    <li data-md>
+     <p>Work towards adopting as soon as possible the model described in <a data-link-type="biblio" href="#biblio-p2300r1">[P2300R1]</a></p>
+    <li data-md>
+     <p>(minor) Rename <em>sender</em> from <a data-link-type="biblio" href="#biblio-p2300r1">[P2300R1]</a> into <em>async computation</em> (shorter: <em>computation</em>), and <em>receiver</em> into <em>async notification handlers</em></p>
+    <li data-md>
+     <p>Start working towards providing concurrency abstractions on top of computations; examples: serializers, pipelines, task graphs, reactive programming, etc.</p>
+   </ol>
+   <h2 class="heading settled" data-level="8" id="todos"><span class="secno">8. </span><span class="content">TODOs</span><a class="self-link" href="#todos"></a></h2>
+   <ul>
+    <li data-md>
+     <p>ensure linking</p>
+    <li data-md>
+     <p>link Theorems</p>
+   </ul>
+  </main>
+<script>
+(function() {
+  "use strict";
+  var collapseSidebarText = '<span aria-hidden="true">←</span> '
+                          + '<span>Collapse Sidebar</span>';
+  var expandSidebarText   = '<span aria-hidden="true">→</span> '
+                          + '<span>Pop Out Sidebar</span>';
+  var tocJumpText         = '<span aria-hidden="true">↑</span> '
+                          + '<span>Jump to Table of Contents</span>';
+
+  var sidebarMedia = window.matchMedia('screen and (min-width: 78em)');
+  var autoToggle   = function(e){ toggleSidebar(e.matches) };
+  if(sidebarMedia.addListener) {
+    sidebarMedia.addListener(autoToggle);
+  }
+
+  function toggleSidebar(on) {
+    if (on == undefined) {
+      on = !document.body.classList.contains('toc-sidebar');
+    }
+
+    /* Don’t scroll to compensate for the ToC if we’re above it already. */
+    var headY = 0;
+    var head = document.querySelector('.head');
+    if (head) {
+      // terrible approx of "top of ToC"
+      headY += head.offsetTop + head.offsetHeight;
+    }
+    var skipScroll = window.scrollY < headY;
+
+    var toggle = document.getElementById('toc-toggle');
+    var tocNav = document.getElementById('toc');
+    if (on) {
+      var tocHeight = tocNav.offsetHeight;
+      document.body.classList.add('toc-sidebar');
+      document.body.classList.remove('toc-inline');
+      toggle.innerHTML = collapseSidebarText;
+      if (!skipScroll) {
+        window.scrollBy(0, 0 - tocHeight);
+      }
+      tocNav.focus();
+      sidebarMedia.addListener(autoToggle); // auto-collapse when out of room
+    }
+    else {
+      document.body.classList.add('toc-inline');
+      document.body.classList.remove('toc-sidebar');
+      toggle.innerHTML = expandSidebarText;
+      if (!skipScroll) {
+        window.scrollBy(0, tocNav.offsetHeight);
+      }
+      if (toggle.matches(':hover')) {
+        /* Unfocus button when not using keyboard navigation,
+           because I don’t know where else to send the focus. */
+        toggle.blur();
+      }
+    }
+  }
+
+  function createSidebarToggle() {
+    /* Create the sidebar toggle in JS; it shouldn’t exist when JS is off. */
+    var toggle = document.createElement('a');
+      /* This should probably be a button, but appearance isn’t standards-track.*/
+    toggle.id = 'toc-toggle';
+    toggle.class = 'toc-toggle';
+    toggle.href = '#toc';
+    toggle.innerHTML = collapseSidebarText;
+
+    sidebarMedia.addListener(autoToggle);
+    var toggler = function(e) {
+      e.preventDefault();
+      sidebarMedia.removeListener(autoToggle); // persist explicit off states
+      toggleSidebar();
+      return false;
+    }
+    toggle.addEventListener('click', toggler, false);
+
+
+    /* Get <nav id=toc-nav>, or make it if we don’t have one. */
+    var tocNav = document.getElementById('toc-nav');
+    if (!tocNav) {
+      tocNav = document.createElement('p');
+      tocNav.id = 'toc-nav';
+      /* Prepend for better keyboard navigation */
+      document.body.insertBefore(tocNav, document.body.firstChild);
+    }
+    /* While we’re at it, make sure we have a Jump to Toc link. */
+    var tocJump = document.getElementById('toc-jump');
+    if (!tocJump) {
+      tocJump = document.createElement('a');
+      tocJump.id = 'toc-jump';
+      tocJump.href = '#toc';
+      tocJump.innerHTML = tocJumpText;
+      tocNav.appendChild(tocJump);
+    }
+
+    tocNav.appendChild(toggle);
+  }
+
+  var toc = document.getElementById('toc');
+  if (toc) {
+    createSidebarToggle();
+    toggleSidebar(sidebarMedia.matches);
+
+    /* If the sidebar has been manually opened and is currently overlaying the text
+       (window too small for the MQ to add the margin to body),
+       then auto-close the sidebar once you click on something in there. */
+    toc.addEventListener('click', function(e) {
+      if(e.target.tagName.toLowerCase() == "a" && document.body.classList.contains('toc-sidebar') && !sidebarMedia.matches) {
+        toggleSidebar(false);
+      }
+    }, false);
+  }
+  else {
+    console.warn("Can’t find Table of Contents. Please use <nav id='toc'> around the ToC.");
+  }
+
+  /* Wrap tables in case they overflow */
+  var tables = document.querySelectorAll(':not(.overlarge) > table.data, :not(.overlarge) > table.index');
+  var numTables = tables.length;
+  for (var i = 0; i < numTables; i++) {
+    var table = tables[i];
+    var wrapper = document.createElement('div');
+    wrapper.className = 'overlarge';
+    table.parentNode.insertBefore(wrapper, table);
+    wrapper.appendChild(table);
+  }
+
+})();
+</script>
+  <h2 class="no-num no-ref heading settled" id="index"><span class="content">Index</span><a class="self-link" href="#index"></a></h2>
+  <h3 class="no-num no-ref heading settled" id="index-defined-here"><span class="content">Terms defined by this specification</span><a class="self-link" href="#index-defined-here"></a></h3>
+  <ul class="index">
+   <li><a href="#async-computation">async computation</a><span>, in § 3.2</span>
+   <li><a href="#computation">computation</a><span>, in § 3.2</span>
+   <li><a href="#conflict">conflict</a><span>, in § 3.3</span>
+   <li><a href="#constraint">constraint</a><span>, in § 3.3</span>
+   <li><a href="#lemma-1-completeness">Lemma 1 (completeness)</a><span>, in § 4.3</span>
+   <li><a href="#lemma-2-soundness">Lemma 2 (soundness)</a><span>, in § 4.3</span>
+   <li><a href="#lemma-3-efficiency">Lemma 3 (efficiency)</a><span>, in § 4.3</span>
+   <li><a href="#lemma-4-async-completion">Lemma 4 (async completion)</a><span>, in § 5.2</span>
+   <li><a href="#lemma-5-delayed-completion">Lemma 5 (delayed completion)</a><span>, in § 5.2</span>
+   <li><a href="#lemma-6-efficiency-with-computations">Lemma 6 (efficiency with computations)</a><span>, in § 5.2</span>
+   <li><a href="#lemma-7-composition">Lemma 7 (composition)</a><span>, in § 5.3</span>
+   <li><a href="#lemma-8-whole-program-as-computation">Lemma 8 (whole program as computation)</a><span>, in § 5.3</span>
+   <li><a href="#lemma-9-program-parts-as-computations">Lemma 9 (program parts as computations)</a><span>, in § 5.3</span>
+   <li><a href="#multi-unit-computation">multi-unit computation</a><span>, in § 3.2</span>
+   <li><a href="#predecessor">predecessor</a><span>, in § 3.3</span>
+   <li><a href="#restriction">restriction</a><span>, in § 3.3</span>
+   <li><a href="#successor">successor</a><span>, in § 3.3</span>
+   <li><a href="#task">task</a><span>, in § 3.2</span>
+   <li><a href="#theorem-1-general-solution-for-scheduling-tasks">Theorem 1 (general solution for scheduling tasks)</a><span>, in § 4.3</span>
+   <li><a href="#theorem-2-general-applicability-of-computations">Theorem 2 (general applicability of computations)</a><span>, in § 5.1</span>
+   <li><a href="#theorem-3-general-solution-with-computations">Theorem 3 (general solution with computations)</a><span>, in § 5.2</span>
+   <li><a href="#theorem-4-general-top-down-decomposition">Theorem 4 (general top-down decomposition)</a><span>, in § 5.3</span>
+   <li><a href="#threads">threads</a><span>, in § 3.1</span>
+   <li><a href="#unit-computation">unit computation</a><span>, in § 3.2</span>
+   <li><a href="#unit-of-work">unit of work</a><span>, in § 3.2</span>
+   <li><a href="#work">work</a><span>, in § 3.1</span>
+  </ul>
+  <h2 class="no-num no-ref heading settled" id="references"><span class="content">References</span><a class="self-link" href="#references"></a></h2>
+  <h3 class="no-num no-ref heading settled" id="informative"><span class="content">Informative References</span><a class="self-link" href="#informative"></a></h3>
+  <dl>
+   <dt id="biblio-p2300r1">[P2300R1]
+   <dd>Michał Dominiak, Lewis Baker, Lee Howes, Kirk Shoop, Michael Garland, Eric Niebler, Bryce Adelstein Lelbach. <a href="https://wg21.link/p2300r1"><cite>std::execution</cite></a>. 6 July 2021. URL: <a href="https://wg21.link/p2300r1">https://wg21.link/p2300r1</a>
+  </dl>
+  <aside class="dfn-panel" data-for="work">
+   <b><a href="#work">#work</a></b><b>Referenced in:</b>
+   <ul>
+    <li><a href="#ref-for-work">3.2. Tasks and computations</a> <a href="#ref-for-work①">(2)</a>
+    <li><a href="#ref-for-work②">4.1. All concurrent programs can be expressed in terms of tasks</a>
+    <li><a href="#ref-for-work③">5.2. High-level concurrency</a>
+   </ul>
+  </aside>
+  <aside class="dfn-panel" data-for="threads">
+   <b><a href="#threads">#threads</a></b><b>Referenced in:</b>
+   <ul>
+    <li><a href="#ref-for-threads">4.1. All concurrent programs can be expressed in terms of tasks</a>
+   </ul>
+  </aside>
+  <aside class="dfn-panel" data-for="task">
+   <b><a href="#task">#task</a></b><b>Referenced in:</b>
+   <ul>
+    <li><a href="#ref-for-task">3.2. Tasks and computations</a> <a href="#ref-for-task①">(2)</a> <a href="#ref-for-task②">(3)</a> <a href="#ref-for-task③">(4)</a>
+    <li><a href="#ref-for-task④">3.3. Task relations</a>
+    <li><a href="#ref-for-task⑤">4. Concurrency with tasks</a>
+    <li><a href="#ref-for-task⑥">4.1. All concurrent programs can be expressed in terms of tasks</a>
+    <li><a href="#ref-for-task⑦">4.2. A general scheduling method</a>
+    <li><a href="#ref-for-task⑧">4.3. Properties of the general scheduling method</a> <a href="#ref-for-task⑨">(2)</a> <a href="#ref-for-task①⓪">(3)</a>
+    <li><a href="#ref-for-task①①">5. Concurrency with computations</a>
+    <li><a href="#ref-for-task①②">5.2. High-level concurrency</a>
+    <li><a href="#ref-for-task①③">5.3. Composability and decomposability</a>
+    <li><a href="#ref-for-task①④">5.4.2. Repeatable computations</a>
+   </ul>
+  </aside>
+  <aside class="dfn-panel" data-for="unit-of-work">
+   <b><a href="#unit-of-work">#unit-of-work</a></b><b>Referenced in:</b>
+   <ul>
+    <li><a href="#ref-for-unit-of-work">3.2. Tasks and computations</a>
+    <li><a href="#ref-for-unit-of-work①">4.1. All concurrent programs can be expressed in terms of tasks</a> <a href="#ref-for-unit-of-work②">(2)</a>
+    <li><a href="#ref-for-unit-of-work③">4.3. Properties of the general scheduling method</a>
+    <li><a href="#ref-for-unit-of-work④">5.2. High-level concurrency</a>
+    <li><a href="#ref-for-unit-of-work⑤">5.4.2. Repeatable computations</a>
+   </ul>
+  </aside>
+  <aside class="dfn-panel" data-for="async-computation">
+   <b><a href="#async-computation">#async-computation</a></b><b>Referenced in:</b>
+   <ul>
+    <li><a href="#ref-for-async-computation">6. Final thoughts and conclusions</a>
+   </ul>
+  </aside>
+  <aside class="dfn-panel" data-for="computation">
+   <b><a href="#computation">#computation</a></b><b>Referenced in:</b>
+   <ul>
+    <li><a href="#ref-for-computation">3.2. Tasks and computations</a> <a href="#ref-for-computation①">(2)</a>
+    <li><a href="#ref-for-computation②">5. Concurrency with computations</a>
+    <li><a href="#ref-for-computation③">5.1. General applicability of computations</a> <a href="#ref-for-computation④">(2)</a>
+    <li><a href="#ref-for-computation⑤">5.3. Composability and decomposability</a> <a href="#ref-for-computation⑥">(2)</a>
+   </ul>
+  </aside>
+  <aside class="dfn-panel" data-for="unit-computation">
+   <b><a href="#unit-computation">#unit-computation</a></b><b>Referenced in:</b>
+   <ul>
+    <li><a href="#ref-for-unit-computation">5.2. High-level concurrency</a>
+    <li><a href="#ref-for-unit-computation①">5.3. Composability and decomposability</a>
+   </ul>
+  </aside>
+  <aside class="dfn-panel" data-for="multi-unit-computation">
+   <b><a href="#multi-unit-computation">#multi-unit-computation</a></b><b>Referenced in:</b>
+   <ul>
+    <li><a href="#ref-for-multi-unit-computation">5.2. High-level concurrency</a>
+   </ul>
+  </aside>
+  <aside class="dfn-panel" data-for="conflict">
+   <b><a href="#conflict">#conflict</a></b><b>Referenced in:</b>
+   <ul>
+    <li><a href="#ref-for-conflict">3.3. Task relations</a>
+    <li><a href="#ref-for-conflict①">4.1. All concurrent programs can be expressed in terms of tasks</a> <a href="#ref-for-conflict②">(2)</a>
+    <li><a href="#ref-for-conflict③">4.2. A general scheduling method</a>
+    <li><a href="#ref-for-conflict④">4.3. Properties of the general scheduling method</a> <a href="#ref-for-conflict⑤">(2)</a> <a href="#ref-for-conflict⑥">(3)</a> <a href="#ref-for-conflict⑦">(4)</a> <a href="#ref-for-conflict⑧">(5)</a> <a href="#ref-for-conflict⑨">(6)</a>
+    <li><a href="#ref-for-conflict①⓪">4.4. Specialized schedulers</a>
+    <li><a href="#ref-for-conflict①①">4.4.2. Semaphores can be modeled with n-serializers</a> <a href="#ref-for-conflict①②">(2)</a>
+    <li><a href="#ref-for-conflict①③">4.4.3. Read-write mutexes can be modeled with rw-serializers</a>
+    <li><a href="#ref-for-conflict①④">5.3. Composability and decomposability</a> <a href="#ref-for-conflict①⑤">(2)</a>
+   </ul>
+  </aside>
+  <aside class="dfn-panel" data-for="predecessor">
+   <b><a href="#predecessor">#predecessor</a></b><b>Referenced in:</b>
+   <ul>
+    <li><a href="#ref-for-predecessor">3.3. Task relations</a> <a href="#ref-for-predecessor①">(2)</a>
+    <li><a href="#ref-for-predecessor②">4.1. All concurrent programs can be expressed in terms of tasks</a> <a href="#ref-for-predecessor③">(2)</a> <a href="#ref-for-predecessor④">(3)</a> <a href="#ref-for-predecessor⑤">(4)</a>
+    <li><a href="#ref-for-predecessor⑥">4.2. A general scheduling method</a>
+    <li><a href="#ref-for-predecessor⑦">4.3. Properties of the general scheduling method</a> <a href="#ref-for-predecessor⑧">(2)</a> <a href="#ref-for-predecessor⑨">(3)</a>
+    <li><a href="#ref-for-predecessor①⓪">4.4.4. Beyond serializers</a>
+    <li><a href="#ref-for-predecessor①①">5.3. Composability and decomposability</a>
+   </ul>
+  </aside>
+  <aside class="dfn-panel" data-for="successor">
+   <b><a href="#successor">#successor</a></b><b>Referenced in:</b>
+   <ul>
+    <li><a href="#ref-for-successor">3.3. Task relations</a> <a href="#ref-for-successor①">(2)</a>
+    <li><a href="#ref-for-successor②">4.1. All concurrent programs can be expressed in terms of tasks</a> <a href="#ref-for-successor③">(2)</a> <a href="#ref-for-successor④">(3)</a>
+    <li><a href="#ref-for-successor⑤">4.3. Properties of the general scheduling method</a>
+    <li><a href="#ref-for-successor⑥">4.4.4. Beyond serializers</a>
+    <li><a href="#ref-for-successor⑦">5.3. Composability and decomposability</a> <a href="#ref-for-successor⑧">(2)</a>
+   </ul>
+  </aside>
+  <aside class="dfn-panel" data-for="restriction">
+   <b><a href="#restriction">#restriction</a></b><b>Referenced in:</b>
+   <ul>
+    <li><a href="#ref-for-restriction">3.3. Task relations</a> <a href="#ref-for-restriction①">(2)</a>
+    <li><a href="#ref-for-restriction②">4.1. All concurrent programs can be expressed in terms of tasks</a> <a href="#ref-for-restriction③">(2)</a> <a href="#ref-for-restriction④">(3)</a>
+    <li><a href="#ref-for-restriction⑤">4.2. A general scheduling method</a>
+    <li><a href="#ref-for-restriction⑥">4.3. Properties of the general scheduling method</a>
+    <li><a href="#ref-for-restriction⑦">4.4.1. Mutexes can be modeled with serializers</a>
+    <li><a href="#ref-for-restriction⑧">4.4.3. Read-write mutexes can be modeled with rw-serializers</a> <a href="#ref-for-restriction⑨">(2)</a>
+    <li><a href="#ref-for-restriction①⓪">5.3. Composability and decomposability</a> <a href="#ref-for-restriction①①">(2)</a>
+   </ul>
+  </aside>
+  <aside class="dfn-panel" data-for="constraint">
+   <b><a href="#constraint">#constraint</a></b><b>Referenced in:</b>
+   <ul>
+    <li><a href="#ref-for-constraint">3.3. Task relations</a>
+    <li><a href="#ref-for-constraint①">4.1. All concurrent programs can be expressed in terms of tasks</a> <a href="#ref-for-constraint②">(2)</a> <a href="#ref-for-constraint③">(3)</a> <a href="#ref-for-constraint④">(4)</a> <a href="#ref-for-constraint⑤">(5)</a> <a href="#ref-for-constraint⑥">(6)</a> <a href="#ref-for-constraint⑦">(7)</a>
+   </ul>
+  </aside>
+  <aside class="dfn-panel" data-for="lemma-1-completeness">
+   <b><a href="#lemma-1-completeness">#lemma-1-completeness</a></b><b>Referenced in:</b>
+   <ul>
+    <li><a href="#ref-for-lemma-1-completeness">5.2. High-level concurrency</a>
+   </ul>
+  </aside>
+  <aside class="dfn-panel" data-for="lemma-2-soundness">
+   <b><a href="#lemma-2-soundness">#lemma-2-soundness</a></b><b>Referenced in:</b>
+   <ul>
+    <li><a href="#ref-for-lemma-2-soundness">5.2. High-level concurrency</a> <a href="#ref-for-lemma-2-soundness①">(2)</a>
+   </ul>
+  </aside>
+  <aside class="dfn-panel" data-for="lemma-3-efficiency">
+   <b><a href="#lemma-3-efficiency">#lemma-3-efficiency</a></b><b>Referenced in:</b>
+   <ul>
+    <li><a href="#ref-for-lemma-3-efficiency">5.2. High-level concurrency</a>
+   </ul>
+  </aside>
+  <aside class="dfn-panel" data-for="theorem-1-general-solution-for-scheduling-tasks">
+   <b><a href="#theorem-1-general-solution-for-scheduling-tasks">#theorem-1-general-solution-for-scheduling-tasks</a></b><b>Referenced in:</b>
+   <ul>
+    <li><a href="#ref-for-theorem-1-general-solution-for-scheduling-tasks">5.1. General applicability of computations</a>
+    <li><a href="#ref-for-theorem-1-general-solution-for-scheduling-tasks①">5.2. High-level concurrency</a>
+   </ul>
+  </aside>
+  <aside class="dfn-panel" data-for="theorem-2-general-applicability-of-computations">
+   <b><a href="#theorem-2-general-applicability-of-computations">#theorem-2-general-applicability-of-computations</a></b><b>Referenced in:</b>
+   <ul>
+    <li><a href="#ref-for-theorem-2-general-applicability-of-computations">5.2. High-level concurrency</a>
+    <li><a href="#ref-for-theorem-2-general-applicability-of-computations①">5.3. Composability and decomposability</a>
+   </ul>
+  </aside>
+  <aside class="dfn-panel" data-for="lemma-6-efficiency-with-computations">
+   <b><a href="#lemma-6-efficiency-with-computations">#lemma-6-efficiency-with-computations</a></b><b>Referenced in:</b>
+   <ul>
+    <li><a href="#ref-for-lemma-6-efficiency-with-computations">5.3. Composability and decomposability</a>
+   </ul>
+  </aside>
+  <aside class="dfn-panel" data-for="lemma-7-composition">
+   <b><a href="#lemma-7-composition">#lemma-7-composition</a></b><b>Referenced in:</b>
+   <ul>
+    <li><a href="#ref-for-lemma-7-composition">5.3. Composability and decomposability</a> <a href="#ref-for-lemma-7-composition①">(2)</a>
+   </ul>
+  </aside>
+  <aside class="dfn-panel" data-for="theorem-4-general-top-down-decomposition">
+   <b><a href="#theorem-4-general-top-down-decomposition">#theorem-4-general-top-down-decomposition</a></b><b>Referenced in:</b>
+   <ul>
+    <li><a href="#ref-for-theorem-4-general-top-down-decomposition">5.3. Composability and decomposability</a>
+   </ul>
+  </aside>
+<script>/* script-dfn-panel */
+
+document.body.addEventListener("click", function(e) {
+    var queryAll = function(sel) { return [].slice.call(document.querySelectorAll(sel)); }
+    // Find the dfn element or panel, if any, that was clicked on.
+    var el = e.target;
+    var target;
+    var hitALink = false;
+    while(el.parentElement) {
+        if(el.tagName == "A") {
+            // Clicking on a link in a <dfn> shouldn't summon the panel
+            hitALink = true;
+        }
+        if(el.classList.contains("dfn-paneled")) {
+            target = "dfn";
+            break;
+        }
+        if(el.classList.contains("dfn-panel")) {
+            target = "dfn-panel";
+            break;
+        }
+        el = el.parentElement;
+    }
+    if(target != "dfn-panel") {
+        // Turn off any currently "on" or "activated" panels.
+        queryAll(".dfn-panel.on, .dfn-panel.activated").forEach(function(el){
+            el.classList.remove("on");
+            el.classList.remove("activated");
+        });
+    }
+    if(target == "dfn" && !hitALink) {
+        // open the panel
+        var dfnPanel = document.querySelector(".dfn-panel[data-for='" + el.id + "']");
+        if(dfnPanel) {
+            dfnPanel.classList.add("on");
+            var rect = el.getBoundingClientRect();
+            dfnPanel.style.left = window.scrollX + rect.right + 5 + "px";
+            dfnPanel.style.top = window.scrollY + rect.top + "px";
+            var panelRect = dfnPanel.getBoundingClientRect();
+            var panelWidth = panelRect.right - panelRect.left;
+            if(panelRect.right > document.body.scrollWidth && (rect.left - (panelWidth + 5)) > 0) {
+                // Reposition, because the panel is overflowing
+                dfnPanel.style.left = window.scrollX + rect.left - (panelWidth + 5) + "px";
+            }
+        } else {
+            console.log("Couldn't find .dfn-panel[data-for='" + el.id + "']");
+        }
+    } else if(target == "dfn-panel") {
+        // Switch it to "activated" state, which pins it.
+        el.classList.add("activated");
+        el.style.left = null;
+        el.style.top = null;
+    }
+
+});
+</script>

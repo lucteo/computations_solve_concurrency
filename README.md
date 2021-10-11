@@ -1,2 +1,2 @@
-# executors_solve_concurrency
-Paper describing the capabilities of executors described in P2300
+# computations_solve_concurrency
+Paper describing the capabilities of senders/receivers (aka computations) described in P2300
