@@ -1563,7 +1563,7 @@ Possible extra rowspan handling
   <meta content="Bikeshed version e8cbf4ed2, updated Fri Sep 10 10:21:28 2021 -0700" name="generator">
   <link href="https://wg21.link/DXXXX" rel="canonical">
   <link href="https://isocpp.org/favicon.ico" rel="icon">
-  <meta content="6cac87dee2e91624e4439461d5fdd888aaccb113" name="document-revision">
+  <meta content="a18a16f02303045cd7eed2fa3083a8556670c896" name="document-revision">
 <style>/* style-autolinks */
 
 .css.css, .property.property, .descriptor.descriptor {
@@ -2114,15 +2114,15 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
   <div class="head">
    <p data-fill-with="logo"></p>
    <h1 class="p-name no-ref" id="title">DXXXXR0<br>Computations as a global solution to concurrency</h1>
-   <h2 class="no-num no-toc no-ref heading settled" id="profile-and-date"><span class="content">Draft Proposal, <time class="dt-updated" datetime="2021-10-12">2021-10-12</time></span></h2>
+   <h2 class="no-num no-toc no-ref heading settled" id="profile-and-date"><span class="content">Draft Proposal, <time class="dt-updated" datetime="2021-11-15">2021-11-15</time></span></h2>
    <div data-fill-with="spec-metadata">
     <dl>
      <dt class="editor">Author:
      <dd class="editor p-author h-card vcard"><a class="p-name fn u-email email" href="mailto:lucteo@lucteo.ro">Lucian Radu Teodorescu</a>
      <dt>Source:
-     <dd><a href="https://github.com/lucteo/executors_solve_concurrency">GitHub</a>
+     <dd><a href="https://github.com/lucteo/computations_solve_concurrency">GitHub</a>
      <dt>Issue Tracking:
-     <dd><a href="https://github.com/lucteo/executors_solve_concurrency/issues">GitHub</a>
+     <dd><a href="https://github.com/lucteo/computations_solve_concurrency/issues">GitHub</a>
      <dt>Project:
      <dd>ISO/IEC JTC1/SC22/WG21 14882: Programming Language — C++
      <dt>Audience:
@@ -2183,7 +2183,6 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
      </ol>
     <li><a href="#conclusions"><span class="secno">6</span> <span class="content">Final thoughts and conclusions</span></a>
     <li><a href="#recommendations"><span class="secno">7</span> <span class="content">Recommendations</span></a>
-    <li><a href="#todos"><span class="secno">8</span> <span class="content">TODOs</span></a>
     <li>
      <a href="#index"><span class="secno"></span> <span class="content">Index</span></a>
      <ol class="toc">
@@ -2192,6 +2191,7 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
     <li>
      <a href="#references"><span class="secno"></span> <span class="content">References</span></a>
      <ol class="toc">
+      <li><a href="#normative"><span class="secno"></span> <span class="content">Normative References</span></a>
       <li><a href="#informative"><span class="secno"></span> <span class="content">Informative References</span></a>
      </ol>
    </ol>
@@ -2204,9 +2204,9 @@ MathJax = {
   }
 };
 </script>
-<script async src="https://cdn.jsdelivr.net/npm/mathjax@3.0.0/es5/tex-mml-chtml.js"></script>
+<script src="mathjax_3.0.0_es5_tex-mml-chtml.js"></script>
    <h2 class="heading settled" data-level="1" id="intro"><span class="secno">1. </span><span class="content">Introduction</span><a class="self-link" href="#intro"></a></h2>
-   <p>This paper aims at providing proof that the senders/receivers model proposed by <a data-link-type="biblio" href="#biblio-p2300r1">[P2300R1]</a> can constitute a global solution to concurrency.</p>
+   <p>This paper aims at providing proof that the senders/receivers model proposed by <a data-link-type="biblio" href="#biblio-p2300r2">[P2300R2]</a> can constitute a global solution to concurrency.</p>
    <h3 class="heading settled" data-level="1.1" id="motivation"><span class="secno">1.1. </span><span class="content">Motivation</span><a class="self-link" href="#motivation"></a></h3>
    <p>Adding a concurrency model in the C++ standard is not something to be taken lightly. It is not an incremental change, it’s a major shift in direction, which hopefully changes the way C++ developers write concurrent code.</p>
    <p>When proposing such a model, we have to ensure that we have the right semantics at the low-level (composability, error handling, efficiency, usability, genericity, interoperability with other language features, etc.), but also at the high-level -- the generality of the proposed model. As the low-level parts of the proposal are well covered by the proposal itself and other papers/discussions in the standard committee, this paper explores the generality of the proposed model.</p>
@@ -2234,7 +2234,7 @@ MathJax = {
     <li data-md>
      <p>any transformations that the programmer might need to do from a "classic" model to the model proposed by senders/receivers</p>
    </ul>
-   <p>All of these are extremely important points, but they do not constitute the focus of this paper. The paper shows that you can build concurrent programs out of computations hierarchically, but it doesn’t provide the best practices for that. This is similar to the work of Böhm and Jacopini that proves that all programs can be written with sequence, selection, and repetition, but does not show the best practices to structure the code.</p>
+   <p>All of these are extremely important points, but they do not constitute the focus of this paper. The paper shows that you can build concurrent programs out of computations hierarchically, but it doesn’t provide the best practices for that. This is similar to the work of Böhm and Jacopini <a data-link-type="biblio" href="#biblio-bhm-jacopini">[Böhm-Jacopini]</a> that proves that all programs can be written with sequence, selection, and repetition, but does not show the best practices to structure the code.</p>
    <h2 class="heading settled" data-level="2" id="revisions"><span class="secno">2. </span><span class="content">Revision history</span><a class="self-link" href="#revisions"></a></h2>
    <h3 class="heading settled" data-level="2.1" id="r0"><span class="secno">2.1. </span><span class="content">R0</span><a class="self-link" href="#r0"></a></h3>
    <p>Initial revision.</p>
@@ -2249,7 +2249,7 @@ MathJax = {
    <p>We call a <dfn class="dfn-paneled" data-dfn-type="dfn" data-noexport id="unit-of-work">unit of work</dfn> that work which doesn’t make sense to be divided further for concurrency reasons. If a work chunk has distinct parts that have different concurrency constraints, then that particular work is not a unit of work.</p>
    <p>The tasks should be <em>independent</em>, in the following sense: two tasks that can be run in parallel should not block on each other.</p>
    <p>Whenever we are referring to <a data-link-type="dfn" href="#work" id="ref-for-work①">work</a> and tasks, we are referring to actual run-time work. For example, if the body of a function corresponds to the <a data-link-type="dfn" href="#unit-of-work" id="ref-for-unit-of-work">unit of work</a>, we would have as many tasks as we would have invocations of that function. Tasks describe run-time behavior, not static behavior.</p>
-   <p>We call an <dfn class="dfn-paneled" data-dfn-type="dfn" data-noexport id="async-computation">async computation</dfn> what <a data-link-type="biblio" href="#biblio-p2300r1">[P2300R1]</a> calls a <em>sender object</em>. As the whole paper is about asynchronicity, we often omit the prefix <em>async</em> and simply call it <dfn class="dfn-paneled" data-dfn-type="dfn" data-noexport id="computation">computation</dfn>.</p>
+   <p>We call an <dfn class="dfn-paneled" data-dfn-type="dfn" data-noexport id="async-computation">async computation</dfn> what <a data-link-type="biblio" href="#biblio-p2300r2">[P2300R2]</a> calls a <em>sender object</em>. As the whole paper is about asynchronicity, we often omit the prefix <em>async</em> and simply call it <dfn class="dfn-paneled" data-dfn-type="dfn" data-noexport id="computation">computation</dfn>.</p>
    <p>Computations can represent parts of tasks (when multiple senders are chained together to form a task), can represent exactly one task (a computation is executed on one thread, and finishing the computation typically means finishing the work to be executed on that thread), or more than one task (when work is executed on more than one thread). We call a <dfn class="dfn-paneled" data-dfn-type="dfn" data-noexport id="unit-computation">unit computation</dfn> a computation that matches a <a data-link-type="dfn" href="#task" id="ref-for-task">task</a>. Also, we call a <dfn class="dfn-paneled" data-dfn-type="dfn" data-noexport id="multi-unit-computation">multi-unit computation</dfn> a computation that corresponds to multiple (complete) <a data-link-type="dfn" href="#task" id="ref-for-task①">tasks</a>.</p>
    <p><a data-link-type="dfn" href="#task" id="ref-for-task②">Tasks</a> are more appropriate to express constraints and prove the correctness of concurrent programs, while <a data-link-type="dfn" href="#computation" id="ref-for-computation">computations</a> are more appropriate to express concurrency building blocks at different levels. Having defined unit computations allows us to transfer the findings that we have on <a data-link-type="dfn" href="#task" id="ref-for-task③">tasks</a> to <a data-link-type="dfn" href="#computation" id="ref-for-computation①">computations</a>.</p>
    <h3 class="heading settled" data-level="3.3" id="conventions-task_relations"><span class="secno">3.3. </span><span class="content">Task relations</span><a class="self-link" href="#conventions-task_relations"></a></h3>
@@ -2612,8 +2612,8 @@ MathJax = {
    <h4 class="heading settled" data-level="5.4.1" id="computations-others-ser"><span class="secno">5.4.1. </span><span class="content">Using specialized schedulers</span><a class="self-link" href="#computations-others-ser"></a></h4>
    <p>In section <a href="#conc-tasks-specialized">§ 4.4 Specialized schedulers</a> we discussed how we can replace the general scheduling method with specialized schedulers to improve the efficiency of the scheduling itself. As main examples, we’ve shown serializers.</p>
    <p>Serializers can also be made to work with computations. For example, one can enqueue a lot of computations into a (simple) serializer, and the serializer will eventually execute all the computations, one at a time.</p>
-   <p>To be able to serve computations coming from different parts of the system, the serializer will probably want to store the computations in a type-erased way. Currently <a data-link-type="biblio" href="#biblio-p2300r1">[P2300R1]</a> doesn’t offer a standard way of doing type-erasure on the computation. However, it will not be hard for the implementer of the serializer to do it.</p>
-   <p>Also, related to serializers, an interesting point to explore is the way in which the computations are started. Computations (i.e., senders), as defined by <a data-link-type="biblio" href="#biblio-p2300r1">[P2300R1]</a> most often have the starting point embedded inside them (senders are built on the sender obtained from the scheduler). If we want the computations to be executed one after another, to prevent unnecessary scheduler switches, maybe a good way is to reuse the scheduler from the previous computation. This is again something that can easily be done. The application probably needs some schedulers that try to reuse the previous scheduler, within certain bounds.</p>
+   <p>To be able to serve computations coming from different parts of the system, the serializer will probably want to store the computations in a type-erased way. Currently <a data-link-type="biblio" href="#biblio-p2300r2">[P2300R2]</a> doesn’t offer a standard way of doing type-erasure on the computation. However, it will not be hard for the implementer of the serializer to do it.</p>
+   <p>Also, related to serializers, an interesting point to explore is the way in which the computations are started. Computations (i.e., senders), as defined by <a data-link-type="biblio" href="#biblio-p2300r2">[P2300R2]</a> most often have the starting point embedded inside them (senders are built on the sender obtained from the scheduler). If we want the computations to be executed one after another, to prevent unnecessary scheduler switches, maybe a good way is to reuse the scheduler from the previous computation. This is again something that can easily be done. The application probably needs some schedulers that try to reuse the previous scheduler, within certain bounds.</p>
    <h4 class="heading settled" data-level="5.4.2" id="computations-others-repeatable"><span class="secno">5.4.2. </span><span class="content">Repeatable computations</span><a class="self-link" href="#computations-others-repeatable"></a></h4>
    <p>While discussing tasks, the underlying assumption was that a <a data-link-type="dfn" href="#unit-of-work" id="ref-for-unit-of-work⑤">unit of work</a> will be mapped exactly to one <a data-link-type="dfn" href="#task" id="ref-for-task①④">task</a>. If we have two units of work in the program, that are doing exactly the same thing, then we would also have two tasks.</p>
    <p>The same assumption was carried over to computations. If the program needed one computation, we assumed there will be a C++ <code class="highlight"><c- n>sender</c-></code> object created for it. If we execute the same work multiple times, we need to have multiple C++ objects.</p>
@@ -2645,7 +2645,7 @@ MathJax = {
    <p>We chose this example because some steps (if not all) may switch threads, and may even wait for responses coming over network.</p>
    <p>Coming back, the main idea of this section is that we can use computations to represent concurrent structures in which one definition of work is applied many times as different items flow through the structure.</p>
    <h2 class="heading settled" data-level="6" id="conclusions"><span class="secno">6. </span><span class="content">Final thoughts and conclusions</span><a class="self-link" href="#conclusions"></a></h2>
-   <p>It might not have been apparent to the reader why we renamed <em>senders</em> from <a data-link-type="biblio" href="#biblio-p2300r1">[P2300R1]</a> into [<a data-link-type="dfn" href="#async-computation" id="ref-for-async-computation">async computations</a>] (shortly <em>computations</em>). Hopefully, after going through the whole paper the reader might feel that the name <em>computation</em> better describes what can be done with these entities. These entities can describe general computations, from small ones to entire applications. As implementation details, they might be sending values to receivers, but from the user’s perspective, they just describe computations. Using the term <em>sender</em> doesn’t properly describe their usage.</p>
+   <p>It might not have been apparent to the reader why we renamed <em>senders</em> from <a data-link-type="biblio" href="#biblio-p2300r2">[P2300R2]</a> into [<a data-link-type="dfn" href="#async-computation" id="ref-for-async-computation">async computations</a>] (shortly <em>computations</em>). Hopefully, after going through the whole paper the reader might feel that the name <em>computation</em> better describes what can be done with these entities. These entities can describe general computations, from small ones to entire applications. As implementation details, they might be sending values to receivers, but from the user’s perspective, they just describe computations. Using the term <em>sender</em> doesn’t properly describe their usage.</p>
    <p>It’s also worth mentioning that the term <em>computation</em> applies to multiple paradigms. It can be easily used to describe imperative work, it can be well assimilated by functional programmers, it can apply to reactive programming and to all stream-based paradigms; although we haven’t talked about it, we can think of computations also in the context of the actor model.</p>
    <p>We haven’t explicitly pursued this, but one can infer that computations can be used as a basis for concurrency in multiple programming paradigms.</p>
    <p>We’ve shown in this paper that computations can be used as a general mechanism for solving all concurrency problems. We’ve also shown that computations can be used as a top-down mechanism to describe concurrency; thus it provides a way for doing <em>structured concurrency</em>. All these can be made without compromising safety, and ensuring the maximum efficiency (under certain assumptions and ignoring the time spent in scheduling).</p>
@@ -2655,19 +2655,12 @@ MathJax = {
    <p>With this paper, the author makes the following recommendations for the C++ standard committee:</p>
    <ol>
     <li data-md>
-     <p>Work towards adopting as soon as possible the model described in <a data-link-type="biblio" href="#biblio-p2300r1">[P2300R1]</a></p>
+     <p>Work towards adopting as soon as possible the model described in <a data-link-type="biblio" href="#biblio-p2300r2">[P2300R2]</a></p>
     <li data-md>
-     <p>(minor) Rename <em>sender</em> from <a data-link-type="biblio" href="#biblio-p2300r1">[P2300R1]</a> into <em>async computation</em> (shorter: <em>computation</em>), and <em>receiver</em> into <em>async notification handlers</em></p>
+     <p>(minor) Rename <em>sender</em> from <a data-link-type="biblio" href="#biblio-p2300r2">[P2300R2]</a> into <em>async computation</em> (shorter: <em>computation</em>), and <em>receiver</em> into <em>async notification handlers</em></p>
     <li data-md>
      <p>Start working towards providing concurrency abstractions on top of computations; examples: serializers, pipelines, task graphs, reactive programming, etc.</p>
    </ol>
-   <h2 class="heading settled" data-level="8" id="todos"><span class="secno">8. </span><span class="content">TODOs</span><a class="self-link" href="#todos"></a></h2>
-   <ul>
-    <li data-md>
-     <p>ensure linking</p>
-    <li data-md>
-     <p>link Theorems</p>
-   </ul>
   </main>
 <script>
 (function() {
@@ -2829,10 +2822,15 @@ MathJax = {
    <li><a href="#work">work</a><span>, in § 3.1</span>
   </ul>
   <h2 class="no-num no-ref heading settled" id="references"><span class="content">References</span><a class="self-link" href="#references"></a></h2>
+  <h3 class="no-num no-ref heading settled" id="normative"><span class="content">Normative References</span><a class="self-link" href="#normative"></a></h3>
+  <dl>
+   <dt id="biblio-p2300r2">[P2300R2]
+   <dd>Michał Dominiak, Lewis Baker, Lee Howes, Kirk Shoop, Michael Garland, Eric Niebler, Bryce Adelstein Lelbach. <a href="https://wg21.link/p2300r2"><cite>std::execution</cite></a>. 4 October 2021. URL: <a href="https://wg21.link/p2300r2">https://wg21.link/p2300r2</a>
+  </dl>
   <h3 class="no-num no-ref heading settled" id="informative"><span class="content">Informative References</span><a class="self-link" href="#informative"></a></h3>
   <dl>
-   <dt id="biblio-p2300r1">[P2300R1]
-   <dd>Michał Dominiak, Lewis Baker, Lee Howes, Kirk Shoop, Michael Garland, Eric Niebler, Bryce Adelstein Lelbach. <a href="https://wg21.link/p2300r1"><cite>std::execution</cite></a>. 6 July 2021. URL: <a href="https://wg21.link/p2300r1">https://wg21.link/p2300r1</a>
+   <dt id="biblio-bhm-jacopini">[Böhm-Jacopini]
+   <dd>Corrado Böhm; Giuseppe Jacopini. <a href="http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.119.9119&amp;rep=rep1&amp;type=pdf"><cite> Flow Diagrams, Turing Machines and Languages With only Two Formation Rules</cite></a>. Communication of the ACM, May 1966. URL: <a href="http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.119.9119&amp;rep=rep1&amp;type=pdf">http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.119.9119&amp;rep=rep1&amp;type=pdf</a>
   </dl>
   <aside class="dfn-panel" data-for="work">
    <b><a href="#work">#work</a></b><b>Referenced in:</b>

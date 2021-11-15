@@ -6,10 +6,10 @@ Status: D
 Group: WG21
 Audience: SG1, LEWG
 Editor: Lucian Radu Teodorescu, lucteo@lucteo.ro
-Repository: lucteo/executors_solve_concurrency
+Repository: lucteo/computations_solve_concurrency
 URL: https://wg21.link/DXXXX
-!Source: <a href="https://github.com/lucteo/executors_solve_concurrency">GitHub</a>
-Issue Tracking: GitHub https://github.com/lucteo/executors_solve_concurrency/issues
+!Source: <a href="https://github.com/lucteo/computations_solve_concurrency">GitHub</a>
+Issue Tracking: GitHub https://github.com/lucteo/computations_solve_concurrency/issues
 Metadata Order: Editor, This Version, Source, Issue Tracking, Project, Audience
 Markup Shorthands: markdown yes
 Toggle Diffs: no
@@ -25,11 +25,26 @@ MathJax = {
   }
 };
 </script>
-<script src='https://cdn.jsdelivr.net/npm/mathjax@3.0.0/es5/tex-mml-chtml.js' async></script>
+<script src='mathjax_3.0.0_es5_tex-mml-chtml.js'></script>
+<!-- <script src='https://cdn.jsdelivr.net/npm/mathjax@3.0.0/es5/tex-mml-chtml.js' async></script> -->
+
+<pre class=biblio>
+{
+    "Böhm-Jacopini": {
+        "authors": [
+            "Corrado Böhm",
+            "Giuseppe Jacopini"
+        ],
+        "href": "http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.119.9119&rep=rep1&type=pdf",
+        "title": " Flow Diagrams, Turing Machines and Languages With only Two Formation Rules",
+        "date": "Communication of the ACM, May 1966"
+    }
+}
+</pre>
 
 # Introduction # {#intro}
 
-This paper aims at providing proof that the senders/receivers model proposed by [[P2300R1]] can constitute a global solution to concurrency.
+This paper aims at providing proof that the senders/receivers model proposed by [[!P2300R2]] can constitute a global solution to concurrency.
 
 
 ## Motivation ## {#motivation}
@@ -55,7 +70,7 @@ For example, the following points are not covered at all in the paper:
 - usability of the code
 - any transformations that the programmer might need to do from a "classic" model to the model proposed by senders/receivers
 
-All of these are extremely important points, but they do not constitute the focus of this paper. The paper shows that you can build concurrent programs out of computations hierarchically, but it doesn't provide the best practices for that. This is similar to the work of Böhm and Jacopini that proves that all programs can be written with sequence, selection, and repetition, but does not show the best practices to structure the code.
+All of these are extremely important points, but they do not constitute the focus of this paper. The paper shows that you can build concurrent programs out of computations hierarchically, but it doesn't provide the best practices for that. This is similar to the work of Böhm and Jacopini [[Böhm-Jacopini]] that proves that all programs can be written with sequence, selection, and repetition, but does not show the best practices to structure the code.
 
 # Revision history # {#revisions}
 
@@ -86,7 +101,7 @@ The tasks should be *independent*, in the following sense: two tasks that can be
 
 Whenever we are referring to [=work=] and tasks, we are referring to actual run-time work. For example, if the body of a function corresponds to the [=unit of work=], we would have as many tasks as we would have invocations of that function. Tasks describe run-time behavior, not static behavior.
 
-We call an <dfn>async computation</dfn> what [[P2300R1]] calls a *sender object*. As the whole paper is about asynchronicity, we often omit the prefix *async* and simply call it <dfn>computation</dfn>.
+We call an <dfn>async computation</dfn> what [[!P2300R2]] calls a *sender object*. As the whole paper is about asynchronicity, we often omit the prefix *async* and simply call it <dfn>computation</dfn>.
 
 Computations can represent parts of tasks (when multiple senders are chained together to form a task), can represent exactly one task (a computation is executed on one thread, and finishing the computation typically means finishing the work to be executed on that thread), or more than one task (when work is executed on more than one thread). We call a <dfn>unit computation</dfn> a computation that matches a [=task=]. Also, we call a <dfn>multi-unit computation</dfn> a computation that corresponds to multiple (complete) [=tasks=].
 
@@ -622,9 +637,9 @@ In section [[#conc-tasks-specialized]] we discussed how we can replace the gener
 
 Serializers can also be made to work with computations. For example, one can enqueue a lot of computations into a (simple) serializer, and the serializer will eventually execute all the computations, one at a time.
 
-To be able to serve computations coming from different parts of the system, the serializer will probably want to store the computations in a type-erased way. Currently [[P2300R1]] doesn't offer a standard way of doing type-erasure on the computation. However, it will not be hard for the implementer of the serializer to do it.
+To be able to serve computations coming from different parts of the system, the serializer will probably want to store the computations in a type-erased way. Currently [[!P2300R2]] doesn't offer a standard way of doing type-erasure on the computation. However, it will not be hard for the implementer of the serializer to do it.
 
-Also, related to serializers, an interesting point to explore is the way in which the computations are started. Computations (i.e., senders), as defined by [[P2300R1]] most often have the starting point embedded inside them (senders are built on the sender obtained from the scheduler). If we want the computations to be executed one after another, to prevent unnecessary scheduler switches, maybe a good way is to reuse the scheduler from the previous computation. This is again something that can easily be done. The application probably needs some schedulers that try to reuse the previous scheduler, within certain bounds.
+Also, related to serializers, an interesting point to explore is the way in which the computations are started. Computations (i.e., senders), as defined by [[!P2300R2]] most often have the starting point embedded inside them (senders are built on the sender obtained from the scheduler). If we want the computations to be executed one after another, to prevent unnecessary scheduler switches, maybe a good way is to reuse the scheduler from the previous computation. This is again something that can easily be done. The application probably needs some schedulers that try to reuse the previous scheduler, within certain bounds.
 
 ### Repeatable computations ### {#computations-others-repeatable}
 
@@ -675,7 +690,7 @@ Coming back, the main idea of this section is that we can use computations to re
 
 # Final thoughts and conclusions # {#conclusions}
 
-It might not have been apparent to the reader why we renamed *senders* from [[P2300R1]] into [[=async computations=]] (shortly *computations*). Hopefully, after going through the whole paper the reader might feel that the name *computation* better describes what can be done with these entities. These entities can describe general computations, from small ones to entire applications. As implementation details, they might be sending values to receivers, but from the user's perspective, they just describe computations. Using the term *sender* doesn't properly describe their usage.
+It might not have been apparent to the reader why we renamed *senders* from [[!P2300R2]] into [[=async computations=]] (shortly *computations*). Hopefully, after going through the whole paper the reader might feel that the name *computation* better describes what can be done with these entities. These entities can describe general computations, from small ones to entire applications. As implementation details, they might be sending values to receivers, but from the user's perspective, they just describe computations. Using the term *sender* doesn't properly describe their usage.
 
 It's also worth mentioning that the term *computation* applies to multiple paradigms. It can be easily used to describe imperative work, it can be well assimilated by functional programmers, it can apply to reactive programming and to all stream-based paradigms; although we haven't talked about it, we can think of computations also in the context of the actor model.
 
@@ -691,12 +706,7 @@ This may be a bold statement, but after these results, we might dare to say that
 # Recommendations # {#recommendations}
 
 With this paper, the author makes the following recommendations for the C++ standard committee:
-1. Work towards adopting as soon as possible the model described in [[P2300R1]]
-2. (minor) Rename *sender* from [[P2300R1]] into *async computation* (shorter: *computation*), and *receiver* into *async notification handlers*
+1. Work towards adopting as soon as possible the model described in [[!P2300R2]]
+2. (minor) Rename *sender* from [[!P2300R2]] into *async computation* (shorter: *computation*), and *receiver* into *async notification handlers*
 3. Start working towards providing concurrency abstractions on top of computations; examples: serializers, pipelines, task graphs, reactive programming, etc.
 
-
-
-# TODOs # {#todos}
-- ensure linking
-- link Theorems
