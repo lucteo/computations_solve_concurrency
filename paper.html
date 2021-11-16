@@ -1563,7 +1563,7 @@ Possible extra rowspan handling
   <meta content="Bikeshed version e8cbf4ed2, updated Fri Sep 10 10:21:28 2021 -0700" name="generator">
   <link href="https://wg21.link/DXXXX" rel="canonical">
   <link href="https://isocpp.org/favicon.ico" rel="icon">
-  <meta content="a18a16f02303045cd7eed2fa3083a8556670c896" name="document-revision">
+  <meta content="7d6b4e9885a92bd718a50ee883ee24b86ab30047" name="document-revision">
 <style>/* style-autolinks */
 
 .css.css, .property.property, .descriptor.descriptor {
@@ -2114,7 +2114,7 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
   <div class="head">
    <p data-fill-with="logo"></p>
    <h1 class="p-name no-ref" id="title">DXXXXR0<br>Computations as a global solution to concurrency</h1>
-   <h2 class="no-num no-toc no-ref heading settled" id="profile-and-date"><span class="content">Draft Proposal, <time class="dt-updated" datetime="2021-11-15">2021-11-15</time></span></h2>
+   <h2 class="no-num no-toc no-ref heading settled" id="profile-and-date"><span class="content">Draft Proposal, <time class="dt-updated" datetime="2021-11-17">2021-11-17</time></span></h2>
    <div data-fill-with="spec-metadata">
     <dl>
      <dt class="editor">Author:
@@ -2181,7 +2181,14 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
         <li><a href="#computations-others-repeatable"><span class="secno">5.4.2</span> <span class="content">Repeatable computations</span></a>
        </ol>
      </ol>
-    <li><a href="#conclusions"><span class="secno">6</span> <span class="content">Final thoughts and conclusions</span></a>
+    <li>
+     <a href="#conclusions"><span class="secno">6</span> <span class="content">Final thoughts and conclusions</span></a>
+     <ol class="toc">
+      <li><a href="#conclusions-name"><span class="secno">6.1</span> <span class="content">Computations and senders</span></a>
+      <li><a href="#conclusions-compvstasks"><span class="secno">6.2</span> <span class="content">Computations vs raw tasks</span></a>
+      <li><a href="#conclusions-abstractions"><span class="secno">6.3</span> <span class="content">Computations as abstractions</span></a>
+      <li><a href="#conclusions-takeaways"><span class="secno">6.4</span> <span class="content">General takeaways</span></a>
+     </ol>
     <li><a href="#recommendations"><span class="secno">7</span> <span class="content">Recommendations</span></a>
     <li>
      <a href="#index"><span class="secno"></span> <span class="content">Index</span></a>
@@ -2235,6 +2242,7 @@ MathJax = {
      <p>any transformations that the programmer might need to do from a "classic" model to the model proposed by senders/receivers</p>
    </ul>
    <p>All of these are extremely important points, but they do not constitute the focus of this paper. The paper shows that you can build concurrent programs out of computations hierarchically, but it doesn’t provide the best practices for that. This is similar to the work of Böhm and Jacopini <a data-link-type="biblio" href="#biblio-bhm-jacopini">[Böhm-Jacopini]</a> that proves that all programs can be written with sequence, selection, and repetition, but does not show the best practices to structure the code.</p>
+   <p>This work is based on the previous work of the author <a data-link-type="biblio" href="#biblio-teodorescu20a">[Teodorescu20a]</a>, <a data-link-type="biblio" href="#biblio-teodorescu20b">[Teodorescu20b]</a>, <a data-link-type="biblio" href="#biblio-teodorescu20c">[Teodorescu20c]</a>, <a data-link-type="biblio" href="#biblio-teodorescu21a">[Teodorescu21a]</a>, <a data-link-type="biblio" href="#biblio-teodorescu21b">[Teodorescu21b]</a>. Parts of <a data-link-type="biblio" href="#biblio-teodorescu20b">[Teodorescu20b]</a> were extended and included in this paper; the ideas found in <a data-link-type="biblio" href="#biblio-teodorescu21b">[Teodorescu21b]</a> are also found in this paper in an more formal and explicit sense. <a data-link-type="biblio" href="#biblio-teodorescu21a">[Teodorescu21a]</a> shows that one can make raw tasks work with composition and decomposition; however after a more careful examination, one can see that the solution presented there is not as generic, and not as efficient as what can be done with the framework presented in <a data-link-type="biblio" href="#biblio-p2300r2">[P2300R2]</a>.</p>
    <h2 class="heading settled" data-level="2" id="revisions"><span class="secno">2. </span><span class="content">Revision history</span><a class="self-link" href="#revisions"></a></h2>
    <h3 class="heading settled" data-level="2.1" id="r0"><span class="secno">2.1. </span><span class="content">R0</span><a class="self-link" href="#r0"></a></h3>
    <p>Initial revision.</p>
@@ -2249,9 +2257,10 @@ MathJax = {
    <p>We call a <dfn class="dfn-paneled" data-dfn-type="dfn" data-noexport id="unit-of-work">unit of work</dfn> that work which doesn’t make sense to be divided further for concurrency reasons. If a work chunk has distinct parts that have different concurrency constraints, then that particular work is not a unit of work.</p>
    <p>The tasks should be <em>independent</em>, in the following sense: two tasks that can be run in parallel should not block on each other.</p>
    <p>Whenever we are referring to <a data-link-type="dfn" href="#work" id="ref-for-work①">work</a> and tasks, we are referring to actual run-time work. For example, if the body of a function corresponds to the <a data-link-type="dfn" href="#unit-of-work" id="ref-for-unit-of-work">unit of work</a>, we would have as many tasks as we would have invocations of that function. Tasks describe run-time behavior, not static behavior.</p>
-   <p>We call an <dfn class="dfn-paneled" data-dfn-type="dfn" data-noexport id="async-computation">async computation</dfn> what <a data-link-type="biblio" href="#biblio-p2300r2">[P2300R2]</a> calls a <em>sender object</em>. As the whole paper is about asynchronicity, we often omit the prefix <em>async</em> and simply call it <dfn class="dfn-paneled" data-dfn-type="dfn" data-noexport id="computation">computation</dfn>.</p>
+   <p>We call an <dfn class="dfn-paneled" data-dfn-type="dfn" data-noexport id="async-computation">async computation</dfn> what <a data-link-type="biblio" href="#biblio-p2300r2">[P2300R2]</a> calls a <em>sender object</em>. As the whole paper is about asynchronicity, we often omit the prefix <em>async</em> and simply call it <dfn class="dfn-paneled" data-dfn-type="dfn" data-noexport id="computation">computation</dfn>. The reader familiar with the <em>sender</em> should remember to substitute <em>computation</em> for <em>sender</em>.</p>
    <p>Computations can represent parts of tasks (when multiple senders are chained together to form a task), can represent exactly one task (a computation is executed on one thread, and finishing the computation typically means finishing the work to be executed on that thread), or more than one task (when work is executed on more than one thread). We call a <dfn class="dfn-paneled" data-dfn-type="dfn" data-noexport id="unit-computation">unit computation</dfn> a computation that matches a <a data-link-type="dfn" href="#task" id="ref-for-task">task</a>. Also, we call a <dfn class="dfn-paneled" data-dfn-type="dfn" data-noexport id="multi-unit-computation">multi-unit computation</dfn> a computation that corresponds to multiple (complete) <a data-link-type="dfn" href="#task" id="ref-for-task①">tasks</a>.</p>
-   <p><a data-link-type="dfn" href="#task" id="ref-for-task②">Tasks</a> are more appropriate to express constraints and prove the correctness of concurrent programs, while <a data-link-type="dfn" href="#computation" id="ref-for-computation">computations</a> are more appropriate to express concurrency building blocks at different levels. Having defined unit computations allows us to transfer the findings that we have on <a data-link-type="dfn" href="#task" id="ref-for-task③">tasks</a> to <a data-link-type="dfn" href="#computation" id="ref-for-computation①">computations</a>.</p>
+   <p>This paper relies on the fact that for both tasks and computations one can define completion notification, which will eventually be called whenever the task/computation is finished executed (either successfully or with error, or it was canceled). However, this paper doesn’t pose any restrictions on how this is actually implemented. Computations have, in general, stronger guarantees than tasks with respect to completion notifications; this is important to the constructions we make here. But then again, for the sake of simplicity, we assume that tasks can have (one way or another) the same guarantees that a completion notification is called whenever the task is finished executing.</p>
+   <p><a data-link-type="dfn" href="#task" id="ref-for-task②">Tasks</a> are more appropriate to express constraints and prove the correctness of concurrent programs, while <a data-link-type="dfn" href="#computation" id="ref-for-computation">computations</a> (a.k.a., senders) are more appropriate to express concurrency building blocks at different levels. Having defined unit computations allows us to transfer the findings that we have on <a data-link-type="dfn" href="#task" id="ref-for-task③">tasks</a> to <a data-link-type="dfn" href="#computation" id="ref-for-computation①">computations</a>.</p>
    <h3 class="heading settled" data-level="3.3" id="conventions-task_relations"><span class="secno">3.3. </span><span class="content">Task relations</span><a class="self-link" href="#conventions-task_relations"></a></h3>
    <p>Let $T$ be the set of all the <a data-link-type="dfn" href="#task" id="ref-for-task④">tasks</a> in the application. Let $parSets(T)$ be the set of all the sets of tasks that can run in parallel without safety issues. If $P \in parSets(T)$, we are interested in finding what tasks we can add to $P$ such that the resulting set is also an element of $parSets(T)$.</p>
    <p>When a task is missing from a particular safe set, we say that it has a <dfn class="dfn-paneled" data-dfn-type="dfn" data-noexport id="conflict">conflict</dfn> with that set. We note this mathematically as $conflict(t, P), t \in T, P \in parSets(T)$.</p>
@@ -2341,8 +2350,8 @@ MathJax = {
         <c- c1>// Move to pending all the tasks that can be active</c->
         <c- k>for</c-> <c- p>(</c-> <c- k>auto</c-> <c- nl>t2</c-><c- p>:</c-> <c- n>pending_tasks</c-><c- p>()</c-> <c- p>)</c-> <c- p>{</c->        
             <c- k>if</c-> <c- p>(</c-> <c- n>can_be_active</c-><c- p>(</c-><c- n>t2</c-><c- p>)</c-> <c- p>)</c-> <c- p>{</c->
-                <c- n>set_active</c-><c- p>(</c-><c- n>t</c-><c- p>);</c->
-                <c- n>start_executing</c-><c- p>(</c-><c- n>t</c-><c- p>,</c-> <c- o>&amp;</c-><c- n>on_task_completed</c-><c- p>);</c->
+                <c- n>set_active</c-><c- p>(</c-><c- n>t2</c-><c- p>);</c->
+                <c- n>start_executing</c-><c- p>(</c-><c- n>t2</c-><c- p>,</c-> <c- o>&amp;</c-><c- n>on_task_completed</c-><c- p>);</c->
             <c- p>}</c->
         <c- p>}</c->
     <c- p>}</c->
@@ -2551,14 +2560,64 @@ MathJax = {
    <p>Related to pipelines, a general approach to concurrency would be reactive programming. There we have <em>streams</em> of items flowing through different processing units (filters, joins, splits, etc.). Again, the concurrency is expressed in terms of the processing units, which need to be factories of tasks, not tasks <em>per se</em>. Tasks can be used in the underlying implementation of the reactive framework.</p>
    <p>All these come to strengthen the idea that we can build concurrent programs on top of tasks. Moreover, we can build concurrency abstractions based on the few properties that tasks have.</p>
    <h2 class="heading settled" data-level="5" id="computations"><span class="secno">5. </span><span class="content">Concurrency with computations</span><a class="self-link" href="#computations"></a></h2>
-   <p>Now that we discussed how we can build concurrent programs using <a data-link-type="dfn" href="#task" id="ref-for-task①①">tasks</a>, we can finally move to <a data-link-type="dfn" href="#computation" id="ref-for-computation②">computations</a> and extend the results we’ve obtained with tasks</p>
+   <p>Now that we discussed how we can build concurrent programs using <a data-link-type="dfn" href="#task" id="ref-for-task①①">tasks</a>, we can finally move to <a data-link-type="dfn" href="#computation" id="ref-for-computation②">computations</a> and extend the results we’ve obtained with tasks. Again, we use the term computation to what <a data-link-type="biblio" href="#biblio-p2300r2">[P2300R2]</a> calls a <em>sender object</em>.</p>
    <h3 class="heading settled" data-level="5.1" id="computations-applicability"><span class="secno">5.1. </span><span class="content">General applicability of computations</span><a class="self-link" href="#computations-applicability"></a></h3>
    <p><dfn class="dfn-paneled" data-dfn-type="dfn" data-noexport id="theorem-2-general-applicability-of-computations">Theorem 2 (general applicability of computations)</dfn>. All concurrent programs can be expressed with <a data-link-type="dfn" href="#computation" id="ref-for-computation③">computations</a> in a safe manner, without requiring blocking synchronization and with high efficiency for computation execution (under the greedy assumption).</p>
    <p>Based on the discussion in <a href="#conventions-tasks">§ 3.2 Tasks and computations</a>, every concurrent program or part of a program that we express with tasks can also be expressed with computations. If we put this together with <a data-link-type="dfn" href="#theorem-1-general-solution-for-scheduling-tasks" id="ref-for-theorem-1-general-solution-for-scheduling-tasks">Theorem 1 (general solution for scheduling tasks)</a>, we arrive at the conclusion of this theorem.</p>
    <p>Q.E.D.</p>
-   <p>In other words, <a data-link-type="dfn" href="#computation" id="ref-for-computation④">computations</a> can be used to solve any concurrent problem.</p>
+   <p>In other words, <a data-link-type="dfn" href="#computation" id="ref-for-computation④">computations</a> (a.k.a., senders) can be used to solve any concurrent problem.</p>
    <h3 class="heading settled" data-level="5.2" id="computations-high"><span class="secno">5.2. </span><span class="content">High-level concurrency</span><a class="self-link" href="#computations-high"></a></h3>
    <p>So far we discussed <a data-link-type="dfn" href="#unit-of-work" id="ref-for-unit-of-work④">units of work</a>. The question that we are trying to answer in this section is whether one can use computations to express larger chunks of <a data-link-type="dfn" href="#work" id="ref-for-work③">work</a>. Allowing users to operate on larger chunks of work, will raise the abstraction level that users can operate while dealing with concurrency. The end goal is to allow users to express concurrency at all abstraction levels: from high-level to low-level.</p>
+   <p>To make it easier for the reader to follow, we repeat the pseudo-code presented in <a href="#conc-tasks-algo">§ 4.2 A general scheduling method</a> here renaming some of the functions. Please note that their structure is identical.</p>
+<pre class="language-C++ highlight"><c- k>struct</c-> <c- nc>safe_scheduler</c-> <c- p>{</c->
+    <c- b>void</c-> <c- nf>schedule</c-><c- p>(</c-><c- n>computation</c-> <c- n>c</c-><c- p>)</c-> <c- p>{</c->
+        <c- c1>// For simplicity, assume that everything is synchronized</c->
+        <c- n>std</c-><c- o>::</c-><c- n>lock_guard</c-><c- o>&lt;</c-><c- n>std</c-><c- o>::</c-><c- n>mutex</c-><c- o>></c-> <c- n>lock</c-><c- p>(</c-><c- n>transition_mutex</c-><c- p>());</c->
+        <c- c1>// Can the computation be moved directly into active state?</c->
+        <c- k>if</c-> <c- p>(</c-> <c- n>can_be_active</c-><c- p>(</c-><c- n>c</c-><c- p>)</c-> <c- p>)</c-> <c- p>{</c->
+            <c- n>set_active</c-><c- p>(</c-><c- n>c</c-><c- p>);</c->
+            <c- n>active_computations</c-><c- p>().</c-><c- n>add</c-><c- p>(</c-><c- n>c</c-><c- p>);</c->
+            <c- n>start_executing</c-><c- p>(</c-><c- n>c</c-><c- p>,</c-> <c- o>&amp;</c-><c- n>on_computation_finished</c-><c- p>);</c->
+        <c- p>}</c->
+        <c- k>else</c-> <c- p>{</c->
+            <c- c1>// Cannot execute the computation yet; make it pending</c->
+            <c- n>set_pending</c-><c- p>(</c-><c- n>c</c-><c- p>);</c->
+            <c- n>pending_computations</c-><c- p>().</c-><c- n>add</c-><c- p>(</c-><c- n>c</c-><c- p>);</c->
+        <c- p>}</c->
+    <c- p>}</c->
+
+<c- nl>private</c-><c- p>:</c->
+    <c- b>void</c-> <c- n>on_computation_finished</c-><c- p>(</c-><c- n>computation</c-> <c- n>c</c-><c- p>)</c-> <c- p>{</c->
+        <c- c1>// Atomically move computations to pending to ensure safety</c->
+        <c- n>std</c-><c- o>::</c-><c- n>lock_guard</c-><c- o>&lt;</c-><c- n>std</c-><c- o>::</c-><c- n>mutex</c-><c- o>></c-> <c- n>lock</c-><c- p>(</c-><c- n>transition_mutex</c-><c- p>());</c->
+        <c- n>set_completed</c-><c- p>(</c-><c- n>c</c-><c- p>);</c->
+        <c- c1>// Move to pending all the computations that can be active</c->
+        <c- k>for</c-> <c- p>(</c-> <c- k>auto</c-> <c- nl>c2</c-><c- p>:</c-> <c- n>pending_computations</c-><c- p>()</c-> <c- p>)</c-> <c- p>{</c->        
+            <c- k>if</c-> <c- p>(</c-> <c- n>can_be_active</c-><c- p>(</c-><c- n>c2</c-><c- p>)</c-> <c- p>)</c-> <c- p>{</c->
+                <c- n>set_active</c-><c- p>(</c-><c- n>c2</c-><c- p>);</c->
+                <c- n>start_executing</c-><c- p>(</c-><c- n>c2</c-><c- p>,</c-> <c- o>&amp;</c-><c- n>on_computation_finished</c-><c- p>);</c->
+            <c- p>}</c->
+        <c- p>}</c->
+    <c- p>}</c->
+    <c- b>bool</c-> <c- n>can_be_active</c-><c- p>(</c-><c- n>computation</c-><c- o>&amp;</c-> <c- n>c</c-><c- p>)</c-> <c- p>{</c->
+        <c- c1>// If not all predecessors in the completed state the computation cannot be active</c->
+        <c- k>for</c-> <c- p>(</c-> <c- k>auto</c-> <c- nl>c2</c-><c- p>:</c-> <c- n>direct_predecessor_of</c-><c- p>(</c-><c- n>t</c-><c- p>)</c-> <c- p>)</c->
+            <c- k>if</c-> <c- p>(</c-> <c- o>!</c-><c- n>is_completed</c-><c- p>(</c-><c- n>c2</c-><c- p>)</c-> <c- p>)</c->
+                <c- k>return</c-> false<c- p>;</c->
+        <c- c1>// A computation that has restrictions with another active computation cannot be active</c->
+        <c- k>for</c-> <c- p>(</c-> <c- k>auto</c-> <c- nl>c2</c-><c- p>:</c-> <c- n>restrictions_of</c-><c- p>(</c-><c- n>t</c-><c- p>)</c-> <c- p>)</c->
+            <c- k>if</c-> <c- p>(</c-> <c- n>is_active</c-><c- p>(</c-><c- n>c2</c-><c- p>)</c-> <c- p>)</c->
+                <c- k>return</c-> false<c- p>;</c->
+        <c- c1>// We might have non-binary conflicts</c->
+        <c- k>if</c-> <c- p>(</c-> <c- n>has_other_conflicts</c-><c- p>(</c-><c- n>t</c-><c- p>,</c-> <c- n>active_computations</c-><c- p>())</c-> <c- p>)</c->
+            <c- k>return</c-> false<c- p>;</c->
+        <c- c1>// Otherwise the computation can be active</c->
+        <c- k>return</c-> true<c- p>;</c->
+    <c- p>}</c->
+    <c- p>...</c->
+<c- p>};</c->
+</pre>
+   <p>The above code looks slightly different than how one would write code in the spirit of <a data-link-type="biblio" href="#biblio-p2300r2">[P2300R2]</a>. However, the reader should imagine as if the above code was written in terms of senders and receivers. Again, the intent of the paper is to discuss the general properties of using computations, not necessarily insist on the actual C++ code that needs to be written.</p>
    <hr>
    <p><dfn data-dfn-type="dfn" data-noexport id="lemma-4-async-completion">Lemma 4 (async completion)<a class="self-link" href="#lemma-4-async-completion"></a></dfn>. All the properties of the general scheduling method and all its implications are still true if the completion notification for a task is sent on a different thread than the thread that actually executes the task.</p>
    <p>Analyzing the general scheduling method described in <a href="#conc-tasks-algo">§ 4.2 A general scheduling method</a> there isn’t any single condition that is placed by the completion notification (<code class="highlight"><c- n>safe_executor</c-><c- o>::</c-><c- n>on_task_completed</c-><c- p>()</c-></code>). The method still works regardless of the thread that sends the completion notification. Changing the thread onto which the notifications are made, doesn’t affect the validity of <a data-link-type="dfn" href="#theorem-1-general-solution-for-scheduling-tasks" id="ref-for-theorem-1-general-solution-for-scheduling-tasks①">Theorem 1 (general solution for scheduling tasks)</a> and thus of <a data-link-type="dfn" href="#theorem-2-general-applicability-of-computations" id="ref-for-theorem-2-general-applicability-of-computations">Theorem 2 (general applicability of computations)</a>.</p>
@@ -2570,13 +2629,15 @@ MathJax = {
    <p>Q.E.D.</p>
    <hr>
    <p><dfn class="dfn-paneled" data-dfn-type="dfn" data-noexport id="lemma-6-efficiency-with-computations">Lemma 6 (efficiency with computations)</dfn>. Treating computations as atomic entities that we don’t want to subdivide, then the general method of execution will ensure the maximum amount of computations can be run in parallel at any time (except time spent in scheduling), under the greedy assumption.</p>
-   <p>We won’t give the full proof here; it follows the same steps as <a data-link-type="dfn" href="#lemma-3-efficiency" id="ref-for-lemma-3-efficiency">Lemma 3 (efficiency)</a> but essentially replacing tasks with computations.</p>
+   <p>We won’t give the full proof here; it follows the same steps as <a data-link-type="dfn" href="#lemma-3-efficiency" id="ref-for-lemma-3-efficiency">Lemma 3 (efficiency)</a> but essentially replacing tasks with computations. The reader can follow the same steps with the new pseudo-code provided in this section to check that one can reach the same conclusions.</p>
    <p>Q.E.D.</p>
-   <p>With this lemma, we assume that similar to the general method presented in <a href="#conc-tasks-algo">§ 4.2 A general scheduling method</a> there is one that looks the same but has computations as the main abstractions that it operates on. As stating the full method here would require a lot of duplication, we assume that what we presented for tasks can easily be used for computations.</p>
    <hr>
    <p><dfn data-dfn-type="dfn" data-noexport id="theorem-3-general-solution-with-computations">Theorem 3 (general solution with computations)<a class="self-link" href="#theorem-3-general-solution-with-computations"></a></dfn>. There is a general method of scheduling computations that works with all concurrent problems, that is safe (without the need of additional blocking synchronization), and is as efficient as it can be (under the greedy assumption).</p>
    <p>The proof follows immediately from the above lemmas, and from the translation of the general method for tasks into a method for arbitrarily sized computations.</p>
    <p>Q.E.D.</p>
+   <hr>
+   <p>In this section, we proved that one can use <a data-link-type="dfn" href="#computation" id="ref-for-computation⑤">computations</a> (a.k.a., senders) of arbitrary sizes (as small as tasks, or bigger than tasks) to implement all concurrent problems. With an appropriate framework, this can be done without requiring locks in user code -- this can lead to safer concurrent programs. Also, in broad terms, under the greedy assumption, and under the <a data-link-type="dfn" href="#conflict" id="ref-for-conflict①④">conflicts</a> imposed on the system, the execution of such programs is as efficient as it can be.</p>
+   <p>This, by itself, is an important result that we obtained for computations. Still, there are a few more important results that we can arrive at for computations.</p>
    <h3 class="heading settled" data-level="5.3" id="computations-composability"><span class="secno">5.3. </span><span class="content">Composability and decomposability</span><a class="self-link" href="#computations-composability"></a></h3>
    <p>Computations have the nice property of being highly composable. Even the smallest examples with computation invoke some kind of composition. All the sender adaptor algorithms take as arguments at least one sender object (<em>computation</em> as we named it). The resulting senders are senders that contain other senders.</p>
    <p>This indicates that one can build complex computations out of simpler computations. Let us analyze the extent of this.</p>
@@ -2590,16 +2651,17 @@ MathJax = {
    <p><dfn data-dfn-type="dfn" data-noexport id="lemma-8-whole-program-as-computation">Lemma 8 (whole program as computation)<a class="self-link" href="#lemma-8-whole-program-as-computation"></a></dfn>. Any concurrent program can be represented by one computation.</p>
    <p><a data-link-type="dfn" href="#theorem-2-general-applicability-of-computations" id="ref-for-theorem-2-general-applicability-of-computations①">Theorem 2 (general applicability of computations)</a> tells us that any program can be represented using computations. Plugging this into <a data-link-type="dfn" href="#lemma-7-composition" id="ref-for-lemma-7-composition">Lemma 7 (composition)</a> we reach the conclusion that any program can be represented as one computation.</p>
    <p>Q.E.D.</p>
+   <p>Using the <a data-link-type="biblio" href="#biblio-p2300r2">[P2300R2]</a> terminology, any program can be represented by one sender object.</p>
    <hr>
    <p><dfn data-dfn-type="dfn" data-noexport id="lemma-9-program-parts-as-computations">Lemma 9 (program parts as computations)<a class="self-link" href="#lemma-9-program-parts-as-computations"></a></dfn>. If one can divide a concurrent program into parts in such a way that no <a data-link-type="dfn" href="#task" id="ref-for-task①③">task</a> belongs to more than one such part, then any of these parts can be represented as computations.</p>
    <p>In the condition of the lemma we assumed that parts are greater than tasks. This is to ensure that the global scheduling algorithm is properly defined. Once we have this out of our way, then however the part is defined, as it can only consist of one or multiple tasks, one can represent it in terms of one or more computations. This means that the part itself can be represented as a computation (<a data-link-type="dfn" href="#lemma-7-composition" id="ref-for-lemma-7-composition①">Lemma 7 (composition)</a>).</p>
    <p>Q.E.D.</p>
    <p>Please note that the relationship between tasks can be lost for arbitrary partitions of the programs into parts. We will have an example later from which one can see that trying to keep certain relations between tasks forces us to make the divisions in certain ways.</p>
    <hr>
-   <p><dfn class="dfn-paneled" data-dfn-type="dfn" data-noexport id="theorem-4-general-top-down-decomposition">Theorem 4 (general top-down decomposition)</dfn>. Any concurrent program can be modeled as a <a data-link-type="dfn" href="#computation" id="ref-for-computation⑤">computation</a> and can be decomposed in terms of <a data-link-type="dfn" href="#computation" id="ref-for-computation⑥">computations</a>; if those computations are large enough, they can be further decomposed until reaching <a data-link-type="dfn" href="#unit-computation" id="ref-for-unit-computation①">unit computations</a>.</p>
+   <p><dfn class="dfn-paneled" data-dfn-type="dfn" data-noexport id="theorem-4-general-top-down-decomposition">Theorem 4 (general top-down decomposition)</dfn>. Any concurrent program can be modeled as a <a data-link-type="dfn" href="#computation" id="ref-for-computation⑥">computation</a> and can be decomposed in terms of <a data-link-type="dfn" href="#computation" id="ref-for-computation⑦">computations</a>; if those computations are large enough, they can be further decomposed until reaching <a data-link-type="dfn" href="#unit-computation" id="ref-for-unit-computation①">unit computations</a>.</p>
    <p>The proof follows immediately from the last 3 lemmas.</p>
    <p>Q.E.D.</p>
-   <p>Similar to the above note, the reader should realize that this theorem doesn’t state that all possible decompositions of a program or sub-program are equivalent. In the vast majority of programs, there are <a data-link-type="dfn" href="#conflict" id="ref-for-conflict①④">conflicts</a> between too many different parts of the program. Dividing the program in different ways will result in a different set of <a data-link-type="dfn" href="#conflict" id="ref-for-conflict①⑤">conflicts</a> between the computations representing the groups. This means that the performance of the program can vary depending on the way in which the split is done.</p>
+   <p>Similar to the above note, the reader should realize that this theorem doesn’t state that all possible decompositions of a program or sub-program are equivalent. In the vast majority of programs, there are <a data-link-type="dfn" href="#conflict" id="ref-for-conflict①⑤">conflicts</a> between too many different parts of the program. Dividing the program in different ways will result in a different set of <a data-link-type="dfn" href="#conflict" id="ref-for-conflict①⑥">conflicts</a> between the computations representing the groups. This means that the performance of the program can vary depending on the way in which the split is done.</p>
    <hr>
    <p>Let us take an example to illustrate the applicability of <a data-link-type="dfn" href="#theorem-4-general-top-down-decomposition" id="ref-for-theorem-4-general-top-down-decomposition">Theorem 4 (general top-down decomposition)</a>. Let’s consider the program illustrated in the next figure. This program contains mostly <a data-link-type="dfn" href="#successor" id="ref-for-successor⑦">successor</a>/<a data-link-type="dfn" href="#predecessor" id="ref-for-predecessor①①">predecessor</a> relations between tasks, and one <a data-link-type="dfn" href="#restriction" id="ref-for-restriction①⓪">restriction</a> (shown in red).</p>
    <center><img alt="Computation hierarchies" src="images/2_groups.png" width="75%"></center>
@@ -2607,7 +2669,7 @@ MathJax = {
    <p>To maintain the safety of the program, we need to maintain the same restrictions. The reader should note that each computation has clear predecessors, and exactly one <a data-link-type="dfn" href="#successor" id="ref-for-successor⑧">successor</a>.</p>
    <p>The reader might have noticed that we did not create too much grouping around $T_{14}$. If we add more grouping than the one shown in the picture, we need to degrade efficiency to maintain safety. For example, trying to group together $T_{11}$ and $T_{15}$ will force us to add a <a data-link-type="dfn" href="#restriction" id="ref-for-restriction①①">restriction</a> between this group and $T_{14}$ (as stated in <a data-link-type="dfn" href="#lemma-6-efficiency-with-computations" id="ref-for-lemma-6-efficiency-with-computations">Lemma 6 (efficiency with computations)</a>, we treat computation atomically). Thus, even if this new group is spending a lot of time executing $T_{11}$, we cannot execute $T_{14}$ at the same time. This leads to a loss of efficiency.</p>
    <hr>
-   <p>This result allows us to approach concurrency in both a top-down and bottom-up fashion, allowing us to treat concurrency similarly to how we design software. That is, we can have a structured approach to building concurrent software.</p>
+   <p>This result allows us to approach concurrency in both a top-down and bottom-up fashion, allowing us to treat concurrency similarly to how we design software. That is, using <a data-link-type="dfn" href="#computation" id="ref-for-computation⑧">computations</a> (a.k.a., senders) we can have a structured approach to building concurrent software.</p>
    <h3 class="heading settled" data-level="5.4" id="computations-others"><span class="secno">5.4. </span><span class="content">Other considerations</span><a class="self-link" href="#computations-others"></a></h3>
    <h4 class="heading settled" data-level="5.4.1" id="computations-others-ser"><span class="secno">5.4.1. </span><span class="content">Using specialized schedulers</span><a class="self-link" href="#computations-others-ser"></a></h4>
    <p>In section <a href="#conc-tasks-specialized">§ 4.4 Specialized schedulers</a> we discussed how we can replace the general scheduling method with specialized schedulers to improve the efficiency of the scheduling itself. As main examples, we’ve shown serializers.</p>
@@ -2645,9 +2707,24 @@ MathJax = {
    <p>We chose this example because some steps (if not all) may switch threads, and may even wait for responses coming over network.</p>
    <p>Coming back, the main idea of this section is that we can use computations to represent concurrent structures in which one definition of work is applied many times as different items flow through the structure.</p>
    <h2 class="heading settled" data-level="6" id="conclusions"><span class="secno">6. </span><span class="content">Final thoughts and conclusions</span><a class="self-link" href="#conclusions"></a></h2>
-   <p>It might not have been apparent to the reader why we renamed <em>senders</em> from <a data-link-type="biblio" href="#biblio-p2300r2">[P2300R2]</a> into [<a data-link-type="dfn" href="#async-computation" id="ref-for-async-computation">async computations</a>] (shortly <em>computations</em>). Hopefully, after going through the whole paper the reader might feel that the name <em>computation</em> better describes what can be done with these entities. These entities can describe general computations, from small ones to entire applications. As implementation details, they might be sending values to receivers, but from the user’s perspective, they just describe computations. Using the term <em>sender</em> doesn’t properly describe their usage.</p>
+   <h3 class="heading settled" data-level="6.1" id="conclusions-name"><span class="secno">6.1. </span><span class="content">Computations and senders</span><a class="self-link" href="#conclusions-name"></a></h3>
+   <p>In <a href="#conventions-tasks">§ 3.2 Tasks and computations</a> we defined <a data-link-type="dfn" href="#async-computation" id="ref-for-async-computation">async computation</a> as being exactly as <a data-link-type="biblio" href="#biblio-p2300r2">[P2300R2]</a> names <em>sender object</em>. It might not have been apparent to the reader why we use a different term and not<em>senders</em>. Hopefully, after going through the whole paper, the reader might feel that the name <em>computation</em> better describes what can be done with these entities. These entities can describe general computations, from small ones to entire applications. As implementation details, they might be sending values to receivers, but from the user’s perspective, they just describe computations. Using the term <em>sender</em> doesn’t properly describe their usage.</p>
    <p>It’s also worth mentioning that the term <em>computation</em> applies to multiple paradigms. It can be easily used to describe imperative work, it can be well assimilated by functional programmers, it can apply to reactive programming and to all stream-based paradigms; although we haven’t talked about it, we can think of computations also in the context of the actor model.</p>
    <p>We haven’t explicitly pursued this, but one can infer that computations can be used as a basis for concurrency in multiple programming paradigms.</p>
+   <h3 class="heading settled" data-level="6.2" id="conclusions-compvstasks"><span class="secno">6.2. </span><span class="content">Computations vs raw tasks</span><a class="self-link" href="#conclusions-compvstasks"></a></h3>
+   <p>This paper proved a series of properties for models based on raw tasks and based on computations as defined by <a data-link-type="biblio" href="#biblio-p2300r2">[P2300R2]</a>. The reader might have the impression that both models are equivalent. This is far from the truth.</p>
+   <p>First, there is the low-level semantics, which was mostly ignored by this paper. Probably the main difference is that raw tasks don’t have a guarantee for completion notification. One can build these guarantees on top of tasks, but doing this, will essentially move the model towards <a data-link-type="biblio" href="#biblio-p2300r2">[P2300R2]</a>. Raw tasks, when implemented generically, also tend to suffer in terms of performance. More importantly, from a software quality perspective, raw tasks lack proper error handling and cancellation support. All these are aspects, although very important, glanced over by this paper.</p>
+   <p>Secondly, we arrived at some conclusions for computations that simply do not apply to raw tasks. Computations can represent work chunks that have inner parts that can be executed in different execution contexts. Computations can represent work chunks of arbitrary size: from small units of work to large chunks of works, and even to entire programs. Raw tasks are always bound to one thread, so they cannot simply do all of these.</p>
+   <p><a data-link-type="dfn" href="#theorem-4-general-top-down-decomposition" id="ref-for-theorem-4-general-top-down-decomposition①">Theorem 4 (general top-down decomposition)</a>, very important from a design perspective applies only to computations and cannot apply to tasks.</p>
+   <p>Computations (a.k.a., senders) are superior to raw tasks from all these perspectives.</p>
+   <h3 class="heading settled" data-level="6.3" id="conclusions-abstractions"><span class="secno">6.3. </span><span class="content">Computations as abstractions</span><a class="self-link" href="#conclusions-abstractions"></a></h3>
+   <p>Allowing top-down decomposition of concurrency, as resulted from <a data-link-type="dfn" href="#theorem-4-general-top-down-decomposition" id="ref-for-theorem-4-general-top-down-decomposition②">Theorem 4 (general top-down decomposition)</a> has a huge impact on the design of concurrent applications. With computations, we have now a proper <em>abstraction</em> to be used in concurrent design.</p>
+   <p>Raw threads and locks are primitives for building concurrent applications, but they are not abstractions. They can be used to build concurrent programs, but they cannot be used to abstract parts of the concurrent system. Moreover, the experience of more than 50 years using these primitives showed us that they are poor primitives as they lead to a lot of safety and performance issues. The software industry needs to abandon the use of raw threads and locks as primitives.</p>
+   <p><a data-link-type="dfn" href="#task" id="ref-for-task①⑤">Tasks</a> can also be considered as primitives for building concurrent programs. One can build efficient concurrent programs, and, if the <a data-link-type="dfn" href="#conflict" id="ref-for-conflict①⑦">conflicts</a> are correctly set, then the program is safe from a concurrency perspective. Tasks can be better primitives compared to raw threads and locks. But tasks are still not abstractions. One cannot have a task that represents a large part of the concurrent program.</p>
+   <p>On the other hand, <a data-link-type="dfn" href="#computation" id="ref-for-computation⑨">computations</a> are proper abstractions. One can use computations to encode tasks; this makes computations also be primitives for building concurrent programs. Moreover, one can use computations to represent large parts of the concurrent programs and even the whole program.</p>
+   <p>Let us make an analogy. All the imperative single-threaded programs can be built with <code class="highlight"><c- k>if</c-></code> and <code class="highlight"><c- k>while</c-></code> statements. These can be thought of as primitives for imperative programming. But they are not abstractions; functions are proper abstractions. One can encode in a single function large parts of the functionality of a program. And, it can decompose the program with the help of the functions.</p>
+   <p>Computations are to concurrency what functions are to imperative programming.</p>
+   <h3 class="heading settled" data-level="6.4" id="conclusions-takeaways"><span class="secno">6.4. </span><span class="content">General takeaways</span><a class="self-link" href="#conclusions-takeaways"></a></h3>
    <p>We’ve shown in this paper that computations can be used as a general mechanism for solving all concurrency problems. We’ve also shown that computations can be used as a top-down mechanism to describe concurrency; thus it provides a way for doing <em>structured concurrency</em>. All these can be made without compromising safety, and ensuring the maximum efficiency (under certain assumptions and ignoring the time spent in scheduling).</p>
    <p>Using computations and possibly some higher-level abstractions, the programmer will no longer need to add locks into the code; this has the potential of freeing the C++ world from a lot of pain induced by ad-hoc concurrency.</p>
    <p>This may be a bold statement, but after these results, we might dare to say that <em>computations solve concurrency</em>.</p>
@@ -2659,7 +2736,7 @@ MathJax = {
     <li data-md>
      <p>(minor) Rename <em>sender</em> from <a data-link-type="biblio" href="#biblio-p2300r2">[P2300R2]</a> into <em>async computation</em> (shorter: <em>computation</em>), and <em>receiver</em> into <em>async notification handlers</em></p>
     <li data-md>
-     <p>Start working towards providing concurrency abstractions on top of computations; examples: serializers, pipelines, task graphs, reactive programming, etc.</p>
+     <p>Start working towards providing more concurrency abstractions on top of computations; examples: serializers, pipelines, task graphs, reactive programming, etc.</p>
    </ol>
   </main>
 <script>
@@ -2830,7 +2907,17 @@ MathJax = {
   <h3 class="no-num no-ref heading settled" id="informative"><span class="content">Informative References</span><a class="self-link" href="#informative"></a></h3>
   <dl>
    <dt id="biblio-bhm-jacopini">[Böhm-Jacopini]
-   <dd>Corrado Böhm; Giuseppe Jacopini. <a href="http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.119.9119&amp;rep=rep1&amp;type=pdf"><cite> Flow Diagrams, Turing Machines and Languages With only Two Formation Rules</cite></a>. Communication of the ACM, May 1966. URL: <a href="http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.119.9119&amp;rep=rep1&amp;type=pdf">http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.119.9119&amp;rep=rep1&amp;type=pdf</a>
+   <dd>Corrado Böhm; Giuseppe Jacopini. <a href="http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.119.9119&amp;rep=rep1&amp;type=pdf"><cite>Flow Diagrams, Turing Machines and Languages With only Two Formation Rules</cite></a>. Communication of the ACM, May 1966. URL: <a href="http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.119.9119&amp;rep=rep1&amp;type=pdf">http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.119.9119&amp;rep=rep1&amp;type=pdf</a>
+   <dt id="biblio-teodorescu20a">[Teodorescu20a]
+   <dd>Lucian Radu Teodorescu. <a href="https://accu.org/journals/overload/28/157/overload157.pdf"><cite>Refocusing Amdahl’s Law</cite></a>. Overload 157, June 2020. URL: <a href="https://accu.org/journals/overload/28/157/overload157.pdf">https://accu.org/journals/overload/28/157/overload157.pdf</a>
+   <dt id="biblio-teodorescu20b">[Teodorescu20b]
+   <dd>Lucian Radu Teodorescu. <a href="https://accu.org/journals/overload/28/158/overload158.pdf"><cite>The Global Lockdown of Locks</cite></a>. Overload 158, August 2020. URL: <a href="https://accu.org/journals/overload/28/158/overload158.pdf">https://accu.org/journals/overload/28/158/overload158.pdf</a>
+   <dt id="biblio-teodorescu20c">[Teodorescu20c]
+   <dd>Lucian Radu Teodorescu. <a href="https://accu.org/journals/overload/28/159/overload159.pdf"><cite>Concurrency Design Patterns</cite></a>. Overload 159, October 2020. URL: <a href="https://accu.org/journals/overload/28/159/overload159.pdf">https://accu.org/journals/overload/28/159/overload159.pdf</a>
+   <dt id="biblio-teodorescu21a">[Teodorescu21a]
+   <dd>Lucian Radu Teodorescu. <a href="https://accu.org/journals/overload/29/162/overload162.pdf"><cite>Composition and Decomposition of Task Systems</cite></a>. Overload 162, April 2021. URL: <a href="https://accu.org/journals/overload/29/162/overload162.pdf">https://accu.org/journals/overload/29/162/overload162.pdf</a>
+   <dt id="biblio-teodorescu21b">[Teodorescu21b]
+   <dd>Lucian Radu Teodorescu. <a href="https://accu.org/journals/overload/29/165/overload165.pdf"><cite>Executors: a Change of Perspective</cite></a>. Overload 165, October 2021. URL: <a href="https://accu.org/journals/overload/29/165/overload165.pdf">https://accu.org/journals/overload/29/165/overload165.pdf</a>
   </dl>
   <aside class="dfn-panel" data-for="work">
    <b><a href="#work">#work</a></b><b>Referenced in:</b>
@@ -2859,6 +2946,7 @@ MathJax = {
     <li><a href="#ref-for-task①②">5.2. High-level concurrency</a>
     <li><a href="#ref-for-task①③">5.3. Composability and decomposability</a>
     <li><a href="#ref-for-task①④">5.4.2. Repeatable computations</a>
+    <li><a href="#ref-for-task①⑤">6.3. Computations as abstractions</a>
    </ul>
   </aside>
   <aside class="dfn-panel" data-for="unit-of-work">
@@ -2874,7 +2962,7 @@ MathJax = {
   <aside class="dfn-panel" data-for="async-computation">
    <b><a href="#async-computation">#async-computation</a></b><b>Referenced in:</b>
    <ul>
-    <li><a href="#ref-for-async-computation">6. Final thoughts and conclusions</a>
+    <li><a href="#ref-for-async-computation">6.1. Computations and senders</a>
    </ul>
   </aside>
   <aside class="dfn-panel" data-for="computation">
@@ -2883,7 +2971,9 @@ MathJax = {
     <li><a href="#ref-for-computation">3.2. Tasks and computations</a> <a href="#ref-for-computation①">(2)</a>
     <li><a href="#ref-for-computation②">5. Concurrency with computations</a>
     <li><a href="#ref-for-computation③">5.1. General applicability of computations</a> <a href="#ref-for-computation④">(2)</a>
-    <li><a href="#ref-for-computation⑤">5.3. Composability and decomposability</a> <a href="#ref-for-computation⑥">(2)</a>
+    <li><a href="#ref-for-computation⑤">5.2. High-level concurrency</a>
+    <li><a href="#ref-for-computation⑥">5.3. Composability and decomposability</a> <a href="#ref-for-computation⑦">(2)</a> <a href="#ref-for-computation⑧">(3)</a>
+    <li><a href="#ref-for-computation⑨">6.3. Computations as abstractions</a>
    </ul>
   </aside>
   <aside class="dfn-panel" data-for="unit-computation">
@@ -2909,7 +2999,9 @@ MathJax = {
     <li><a href="#ref-for-conflict①⓪">4.4. Specialized schedulers</a>
     <li><a href="#ref-for-conflict①①">4.4.2. Semaphores can be modeled with n-serializers</a> <a href="#ref-for-conflict①②">(2)</a>
     <li><a href="#ref-for-conflict①③">4.4.3. Read-write mutexes can be modeled with rw-serializers</a>
-    <li><a href="#ref-for-conflict①④">5.3. Composability and decomposability</a> <a href="#ref-for-conflict①⑤">(2)</a>
+    <li><a href="#ref-for-conflict①④">5.2. High-level concurrency</a>
+    <li><a href="#ref-for-conflict①⑤">5.3. Composability and decomposability</a> <a href="#ref-for-conflict①⑥">(2)</a>
+    <li><a href="#ref-for-conflict①⑦">6.3. Computations as abstractions</a>
    </ul>
   </aside>
   <aside class="dfn-panel" data-for="predecessor">
@@ -3000,6 +3092,8 @@ MathJax = {
    <b><a href="#theorem-4-general-top-down-decomposition">#theorem-4-general-top-down-decomposition</a></b><b>Referenced in:</b>
    <ul>
     <li><a href="#ref-for-theorem-4-general-top-down-decomposition">5.3. Composability and decomposability</a>
+    <li><a href="#ref-for-theorem-4-general-top-down-decomposition①">6.2. Computations vs raw tasks</a>
+    <li><a href="#ref-for-theorem-4-general-top-down-decomposition②">6.3. Computations as abstractions</a>
    </ul>
   </aside>
 <script>/* script-dfn-panel */

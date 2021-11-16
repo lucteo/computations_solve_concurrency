@@ -36,8 +36,38 @@ MathJax = {
             "Giuseppe Jacopini"
         ],
         "href": "http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.119.9119&rep=rep1&type=pdf",
-        "title": " Flow Diagrams, Turing Machines and Languages With only Two Formation Rules",
+        "title": "Flow Diagrams, Turing Machines and Languages With only Two Formation Rules",
         "date": "Communication of the ACM, May 1966"
+    },
+    "Teodorescu20a": {
+        "authors": ["Lucian Radu Teodorescu"],
+        "href": "https://accu.org/journals/overload/28/157/overload157.pdf",
+        "title": "Refocusing Amdahl’s Law",
+        "date": "Overload 157, June 2020"
+    },
+    "Teodorescu20b": {
+        "authors": ["Lucian Radu Teodorescu"],
+        "href": "https://accu.org/journals/overload/28/158/overload158.pdf",
+        "title": "The Global Lockdown of Locks",
+        "date": "Overload 158, August 2020"
+    },
+    "Teodorescu20c": {
+        "authors": ["Lucian Radu Teodorescu"],
+        "href": "https://accu.org/journals/overload/28/159/overload159.pdf",
+        "title": "Concurrency Design Patterns",
+        "date": "Overload 159, October 2020"
+    },
+    "Teodorescu21a": {
+        "authors": ["Lucian Radu Teodorescu"],
+        "href": "https://accu.org/journals/overload/29/162/overload162.pdf",
+        "title": "Composition and Decomposition of Task Systems",
+        "date": "Overload 162, April 2021"
+    },
+    "Teodorescu21b": {
+        "authors": ["Lucian Radu Teodorescu"],
+        "href": "https://accu.org/journals/overload/29/165/overload165.pdf",
+        "title": "Executors: a Change of Perspective",
+        "date": "Overload 165, October 2021"
     }
 }
 </pre>
@@ -72,6 +102,8 @@ For example, the following points are not covered at all in the paper:
 
 All of these are extremely important points, but they do not constitute the focus of this paper. The paper shows that you can build concurrent programs out of computations hierarchically, but it doesn't provide the best practices for that. This is similar to the work of Böhm and Jacopini [[Böhm-Jacopini]] that proves that all programs can be written with sequence, selection, and repetition, but does not show the best practices to structure the code.
 
+This work is based on the previous work of the author [[Teodorescu20a]], [[Teodorescu20b]], [[Teodorescu20c]], [[Teodorescu21a]], [[Teodorescu21b]]. Parts of [[Teodorescu20b]] were extended and included in this paper; the ideas found in [[Teodorescu21b]] are also found in this paper in an more formal and explicit sense. [[Teodorescu21a]] shows that one can make raw tasks work with composition and decomposition; however after a more careful examination, one can see that the solution presented there is not as generic, and not as efficient as what can be done with the framework presented in [[!P2300R2]].
+
 # Revision history # {#revisions}
 
 ## R0 ## {#r0}
@@ -101,11 +133,13 @@ The tasks should be *independent*, in the following sense: two tasks that can be
 
 Whenever we are referring to [=work=] and tasks, we are referring to actual run-time work. For example, if the body of a function corresponds to the [=unit of work=], we would have as many tasks as we would have invocations of that function. Tasks describe run-time behavior, not static behavior.
 
-We call an <dfn>async computation</dfn> what [[!P2300R2]] calls a *sender object*. As the whole paper is about asynchronicity, we often omit the prefix *async* and simply call it <dfn>computation</dfn>.
+We call an <dfn>async computation</dfn> what [[!P2300R2]] calls a *sender object*. As the whole paper is about asynchronicity, we often omit the prefix *async* and simply call it <dfn>computation</dfn>. The reader familiar with the *sender* should remember to substitute *computation* for *sender*.
 
 Computations can represent parts of tasks (when multiple senders are chained together to form a task), can represent exactly one task (a computation is executed on one thread, and finishing the computation typically means finishing the work to be executed on that thread), or more than one task (when work is executed on more than one thread). We call a <dfn>unit computation</dfn> a computation that matches a [=task=]. Also, we call a <dfn>multi-unit computation</dfn> a computation that corresponds to multiple (complete) [=tasks=].
 
-[=Tasks=] are more appropriate to express constraints and prove the correctness of concurrent programs, while [=computations=] are more appropriate to express concurrency building blocks at different levels. Having defined unit computations allows us to transfer the findings that we have on [=tasks=] to [=computations=].
+This paper relies on the fact that for both tasks and computations one can define completion notification, which will eventually be called whenever the task/computation is finished executed (either successfully or with error, or it was canceled). However, this paper doesn't pose any restrictions on how this is actually implemented. Computations have, in general, stronger guarantees than tasks with respect to completion notifications; this is important to the constructions we make here. But then again, for the sake of simplicity, we assume that tasks can have (one way or another) the same guarantees that a completion notification is called whenever the task is finished executing.
+
+[=Tasks=] are more appropriate to express constraints and prove the correctness of concurrent programs, while [=computations=] (a.k.a., senders) are more appropriate to express concurrency building blocks at different levels. Having defined unit computations allows us to transfer the findings that we have on [=tasks=] to [=computations=].
 
 
 ## Task relations ## {#conventions-task_relations}
@@ -236,8 +270,8 @@ private:
         // Move to pending all the tasks that can be active
         for ( auto t2: pending_tasks() ) {        
             if ( can_be_active(t2) ) {
-                set_active(t);
-                start_executing(t, &on_task_completed);
+                set_active(t2);
+                start_executing(t2, &on_task_completed);
             }
         }
     }
@@ -514,7 +548,7 @@ All these come to strengthen the idea that we can build concurrent programs on t
 
 # Concurrency with computations # {#computations}
 
-Now that we discussed how we can build concurrent programs using [=tasks=], we can finally move to [=computations=] and extend the results we've obtained with tasks
+Now that we discussed how we can build concurrent programs using [=tasks=], we can finally move to [=computations=] and extend the results we've obtained with tasks. Again, we use the term computation to what [[!P2300R2]] calls a *sender object*.
 
 ## General applicability of computations ## {#computations-applicability}
 
@@ -524,12 +558,66 @@ Based on the discussion in [[#conventions-tasks]], every concurrent program or p
 
 Q.E.D.
 
-In other words, [=computations=] can be used to solve any concurrent problem.
+In other words, [=computations=] (a.k.a., senders) can be used to solve any concurrent problem.
 
 
 ## High-level concurrency ## {#computations-high}
 
 So far we discussed [=units of work=]. The question that we are trying to answer in this section is whether one can use computations to express larger chunks of [=work=]. Allowing users to operate on larger chunks of work, will raise the abstraction level that users can operate while dealing with concurrency. The end goal is to allow users to express concurrency at all abstraction levels: from high-level to low-level.
+
+To make it easier for the reader to follow, we repeat the pseudo-code presented in [[#conc-tasks-algo]] here renaming some of the functions. Please note that their structure is identical.
+
+```C++
+struct safe_scheduler {
+    void schedule(computation c) {
+        // For simplicity, assume that everything is synchronized
+        std::lock_guard<std::mutex> lock(transition_mutex());
+        // Can the computation be moved directly into active state?
+        if ( can_be_active(c) ) {
+            set_active(c);
+            active_computations().add(c);
+            start_executing(c, &on_computation_finished);
+        }
+        else {
+            // Cannot execute the computation yet; make it pending
+            set_pending(c);
+            pending_computations().add(c);
+        }
+    }
+
+private:
+    void on_computation_finished(computation c) {
+        // Atomically move computations to pending to ensure safety
+        std::lock_guard<std::mutex> lock(transition_mutex());
+        set_completed(c);
+        // Move to pending all the computations that can be active
+        for ( auto c2: pending_computations() ) {        
+            if ( can_be_active(c2) ) {
+                set_active(c2);
+                start_executing(c2, &on_computation_finished);
+            }
+        }
+    }
+    bool can_be_active(computation& c) {
+        // If not all predecessors in the completed state the computation cannot be active
+        for ( auto c2: direct_predecessor_of(t) )
+            if ( !is_completed(c2) )
+                return false;
+        // A computation that has restrictions with another active computation cannot be active
+        for ( auto c2: restrictions_of(t) )
+            if ( is_active(c2) )
+                return false;
+        // We might have non-binary conflicts
+        if ( has_other_conflicts(t, active_computations()) )
+            return false;
+        // Otherwise the computation can be active
+        return true;
+    }
+    ...
+};
+```
+
+The above code looks slightly different than how one would write code in the spirit of [[!P2300R2]]. However, the reader should imagine as if the above code was written in terms of senders and receivers. Again, the intent of the paper is to discuss the general properties of using computations, not necessarily insist on the actual C++ code that needs to be written.
 
 ---
 
@@ -553,11 +641,9 @@ Q.E.D.
 
 <dfn>Lemma 6 (efficiency with computations)</dfn>. Treating computations as atomic entities that we don't want to subdivide, then the general method of execution will ensure the maximum amount of computations can be run in parallel at any time (except time spent in scheduling), under the greedy assumption.
 
-We won't give the full proof here; it follows the same steps as [=Lemma 3 (efficiency)=] but essentially replacing tasks with computations.
+We won't give the full proof here; it follows the same steps as [=Lemma 3 (efficiency)=] but essentially replacing tasks with computations. The reader can follow the same steps with the new pseudo-code provided in this section to check that one can reach the same conclusions.
 
 Q.E.D.
-
-With this lemma, we assume that similar to the general method presented in [[#conc-tasks-algo]] there is one that looks the same but has computations as the main abstractions that it operates on. As stating the full method here would require a lot of duplication, we assume that what we presented for tasks can easily be used for computations.
 
 ---
 
@@ -566,6 +652,14 @@ With this lemma, we assume that similar to the general method presented in [[#co
 The proof follows immediately from the above lemmas, and from the translation of the general method for tasks into a method for arbitrarily sized computations.
 
 Q.E.D.
+
+---
+
+In this section, we proved that one can use [=computations=] (a.k.a., senders) of arbitrary sizes (as small as tasks, or bigger than tasks) to implement all concurrent problems. With an appropriate framework, this can be done without requiring locks in user code -- this can lead to safer concurrent programs. Also, in broad terms, under the greedy assumption, and under the [=conflicts=] imposed on the system, the execution of such programs is as efficient as it can be.
+
+This, by itself, is an important result that we obtained for computations. Still, there are a few more important results that we can arrive at for computations.
+
+
 
 ## Composability and decomposability ## {#computations-composability}
 
@@ -592,6 +686,8 @@ Please note that in practice we don't have to use the general method; for most o
 [=Theorem 2 (general applicability of computations)=] tells us that any program can be represented using computations. Plugging this into [=Lemma 7 (composition)=] we reach the conclusion that any program can be represented as one computation.
 
 Q.E.D.
+
+Using the [[!P2300R2]] terminology, any program can be represented by one sender object.
 
 ---
 
@@ -627,7 +723,7 @@ The reader might have noticed that we did not create too much grouping around $T
 
 ---
 
-This result allows us to approach concurrency in both a top-down and bottom-up fashion, allowing us to treat concurrency similarly to how we design software. That is, we can have a structured approach to building concurrent software.
+This result allows us to approach concurrency in both a top-down and bottom-up fashion, allowing us to treat concurrency similarly to how we design software. That is, using [=computations=] (a.k.a., senders) we can have a structured approach to building concurrent software.
 
 ## Other considerations ## {#computations-others}
 
@@ -690,11 +786,43 @@ Coming back, the main idea of this section is that we can use computations to re
 
 # Final thoughts and conclusions # {#conclusions}
 
-It might not have been apparent to the reader why we renamed *senders* from [[!P2300R2]] into [[=async computations=]] (shortly *computations*). Hopefully, after going through the whole paper the reader might feel that the name *computation* better describes what can be done with these entities. These entities can describe general computations, from small ones to entire applications. As implementation details, they might be sending values to receivers, but from the user's perspective, they just describe computations. Using the term *sender* doesn't properly describe their usage.
+## Computations and senders ## {#conclusions-name}
+
+In [[#conventions-tasks]] we defined [=async computation=] as being exactly as [[!P2300R2]] names *sender object*. It might not have been apparent to the reader why we use a different term and not*senders*. Hopefully, after going through the whole paper, the reader might feel that the name *computation* better describes what can be done with these entities. These entities can describe general computations, from small ones to entire applications. As implementation details, they might be sending values to receivers, but from the user's perspective, they just describe computations. Using the term *sender* doesn't properly describe their usage.
 
 It's also worth mentioning that the term *computation* applies to multiple paradigms. It can be easily used to describe imperative work, it can be well assimilated by functional programmers, it can apply to reactive programming and to all stream-based paradigms; although we haven't talked about it, we can think of computations also in the context of the actor model.
 
 We haven't explicitly pursued this, but one can infer that computations can be used as a basis for concurrency in multiple programming paradigms.
+
+## Computations vs raw tasks ## {#conclusions-compvstasks}
+
+This paper proved a series of properties for models based on raw tasks and based on computations as defined by [[!P2300R2]]. The reader might have the impression that both models are equivalent. This is far from the truth.
+
+First, there is the low-level semantics, which was mostly ignored by this paper. Probably the main difference is that raw tasks don't have a guarantee for completion notification. One can build these guarantees on top of tasks, but doing this, will essentially move the model towards [[!P2300R2]]. Raw tasks, when implemented generically, also tend to suffer in terms of performance. More importantly, from a software quality perspective, raw tasks lack proper error handling and cancellation support. All these are aspects, although very important, glanced over by this paper.
+
+Secondly, we arrived at some conclusions for computations that simply do not apply to raw tasks. Computations can represent work chunks that have inner parts that can be executed in different execution contexts. Computations can represent work chunks of arbitrary size: from small units of work to large chunks of works, and even to entire programs. Raw tasks are always bound to one thread, so they cannot simply do all of these.
+
+[=Theorem 4 (general top-down decomposition)=], very important from a design perspective applies only to computations and cannot apply to tasks.
+
+Computations (a.k.a., senders) are superior to raw tasks from all these perspectives.
+
+
+## Computations as abstractions ## {#conclusions-abstractions}
+
+Allowing top-down decomposition of concurrency, as resulted from [=Theorem 4 (general top-down decomposition)=] has a huge impact on the design of concurrent applications. With computations, we have now a proper *abstraction* to be used in concurrent design.
+
+Raw threads and locks are primitives for building concurrent applications, but they are not abstractions. They can be used to build concurrent programs, but they cannot be used to abstract parts of the concurrent system. Moreover, the experience of more than 50 years using these primitives showed us that they are poor primitives as they lead to a lot of safety and performance issues. The software industry needs to abandon the use of raw threads and locks as primitives.
+
+[=Tasks=] can also be considered as primitives for building concurrent programs. One can build efficient concurrent programs, and, if the [=conflicts=] are correctly set, then the program is safe from a concurrency perspective. Tasks can be better primitives compared to raw threads and locks. But tasks are still not abstractions. One cannot have a task that represents a large part of the concurrent program.
+
+On the other hand, [=computations=] are proper abstractions. One can use computations to encode tasks; this makes computations also be primitives for building concurrent programs. Moreover, one can use computations to represent large parts of the concurrent programs and even the whole program.
+
+Let us make an analogy. All the imperative single-threaded programs can be built with `if` and `while` statements. These can be thought of as primitives for imperative programming. But they are not abstractions; functions are proper abstractions. One can encode in a single function large parts of the functionality of a program. And, it can decompose the program with the help of the functions.
+
+Computations are to concurrency what functions are to imperative programming.
+
+
+## General takeaways ## {#conclusions-takeaways}
 
 We've shown in this paper that computations can be used as a general mechanism for solving all concurrency problems. We've also shown that computations can be used as a top-down mechanism to describe concurrency; thus it provides a way for doing *structured concurrency*. All these can be made without compromising safety, and ensuring the maximum efficiency (under certain assumptions and ignoring the time spent in scheduling).
 
@@ -708,5 +836,5 @@ This may be a bold statement, but after these results, we might dare to say that
 With this paper, the author makes the following recommendations for the C++ standard committee:
 1. Work towards adopting as soon as possible the model described in [[!P2300R2]]
 2. (minor) Rename *sender* from [[!P2300R2]] into *async computation* (shorter: *computation*), and *receiver* into *async notification handlers*
-3. Start working towards providing concurrency abstractions on top of computations; examples: serializers, pipelines, task graphs, reactive programming, etc.
+3. Start working towards providing more concurrency abstractions on top of computations; examples: serializers, pipelines, task graphs, reactive programming, etc.
 
