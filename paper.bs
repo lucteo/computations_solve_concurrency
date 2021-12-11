@@ -1,13 +1,13 @@
 <pre class='metadata'>
 Title: Computations as a global solution to concurrency
-Shortname: DXXXX
+Shortname: D2504
 Revision: 0
 Status: D
 Group: WG21
 Audience: SG1, LEWG
 Editor: Lucian Radu Teodorescu, lucteo@lucteo.ro
 Repository: lucteo/computations_solve_concurrency
-URL: https://wg21.link/DXXXX
+URL: https://wg21.link/D2504
 !Source: <a href="https://github.com/lucteo/computations_solve_concurrency">GitHub</a>
 Issue Tracking: GitHub https://github.com/lucteo/computations_solve_concurrency/issues
 Metadata Order: Editor, This Version, Source, Issue Tracking, Project, Audience
